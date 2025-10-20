@@ -13,16 +13,19 @@ function AddCliente({
   setValor,
   clientes,
   setClientes,
+  setData,
 }) {
   function adicionarCliente() {
     if (!nome || !instagram || !numero || !produto || !tamanho || !valor)
-      return alert("preencha todos os campos");
+      return alert("Preencha todos os campos!");
 
     const numeroTel = parseFloat(numero);
     const preco = parseFloat(valor);
 
-    if (isNaN(numeroTel || preco)) return alert("valor invalido");
+    if (isNaN(numeroTel) || isNaN(preco)) return alert("Valor inválido!");
 
+    const novaData = new Date().toLocaleDateString("pt-BR");
+    setData(novaData);
     const novoCliente = {
       nome,
       instagram,
@@ -30,9 +33,10 @@ function AddCliente({
       produto,
       tamanho,
       preco,
+      novaData,
     };
 
-    setClientes([...clientes, novoCliente]);
+    setClientes([novoCliente, ...clientes]);
 
     setNome("");
     setNumero("");
@@ -43,41 +47,63 @@ function AddCliente({
   }
 
   return (
-    <div>
-      <h2>Adicionar um novo cliente</h2>
-      <input
-        value={nome}
-        onChange={(e) => setNome(e.target.value)}
-        placeholder="Nome"
-      ></input>
-      <input
-        value={instagram}
-        onChange={(e) => setInstagram(e.target.value)}
-        placeholder="Instagram"
-      ></input>
-      <input
-        value={numero}
-        onChange={(e) => setNumero(e.target.value)}
-        type="number"
-        placeholder="Numero de telefone"
-      ></input>
-      <input
-        value={produto}
-        onChange={(e) => setProduto(e.target.value)}
-        placeholder="Produto"
-      ></input>
-      <input
-        value={tamanho}
-        onChange={(e) => setTamanho(e.target.value)}
-        placeholder="Tamanho"
-      ></input>
-      <input
-        value={valor}
-        onChange={(e) => setValor(e.target.value)}
-        type="number"
-        placeholder="Valor do produto"
-      ></input>
-      <button onClick={adicionarCliente}>Adicionar Cliente</button>
+    <div className="bg-[#2C1660] p-6 rounded-xl shadow-lg border border-[#FF2E63]/40">
+      <h2 className="text-2xl font-semibold text-white mb-6 text-center">
+        Adicionar Novo Cliente
+      </h2>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <input
+          value={nome}
+          onChange={(e) => setNome(e.target.value)}
+          placeholder="Nome"
+          className="bg-[#1A0841] border border-[#FF2E63]/30 text-white rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#FF2E63]"
+        />
+
+        <input
+          value={instagram}
+          onChange={(e) => setInstagram(e.target.value)}
+          placeholder="Instagram"
+          className="bg-[#1A0841] border border-[#FF2E63]/30 text-white rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#FF2E63]"
+        />
+
+        <input
+          value={numero}
+          onChange={(e) => setNumero(e.target.value)}
+          type="number"
+          placeholder="Número de telefone"
+          className="bg-[#1A0841] border border-[#FF2E63]/30 text-white rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#FF2E63]"
+        />
+
+        <input
+          value={produto}
+          onChange={(e) => setProduto(e.target.value)}
+          placeholder="Produto"
+          className="bg-[#1A0841] border border-[#FF2E63]/30 text-white rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#FF2E63]"
+        />
+
+        <input
+          value={tamanho}
+          onChange={(e) => setTamanho(e.target.value)}
+          placeholder="Tamanho"
+          className="bg-[#1A0841] border border-[#FF2E63]/30 text-white rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#FF2E63]"
+        />
+
+        <input
+          value={valor}
+          onChange={(e) => setValor(e.target.value)}
+          type="number"
+          placeholder="Valor do produto"
+          className="bg-[#1A0841] border border-[#FF2E63]/30 text-white rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#FF2E63]"
+        />
+      </div>
+
+      <button
+        onClick={adicionarCliente}
+        className="w-full mt-6 bg-[#FF2E63] hover:bg-[#ff4877] text-white font-semibold py-3 rounded-lg transition duration-200 shadow-md"
+      >
+        Adicionar Cliente
+      </button>
     </div>
   );
 }
