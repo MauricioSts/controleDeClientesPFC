@@ -60,7 +60,7 @@ function ViewClientes({ clientes }) {
                 — @{cliente.instagram} • {cliente.numero} •{" "}
                 <span className="font-medium">{cliente.produto}</span> (
                 {cliente.tamanho}) • R$
-                {Number(cliente.preco).toFixed(2)} • {cliente.data}
+                {Number(cliente.preco).toFixed(2)} • {cliente.novaData}
               </div>
 
               <div className="mt-3 md:mt-0 md:ml-4 flex items-center gap-2">

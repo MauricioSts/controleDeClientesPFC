@@ -75,7 +75,13 @@ function App() {
       </div>
 
       <footer className="mt-8 text-gray-300 text-sm">
-        Feito por <span className="text-[#FF2E63] font-semibold">Mauricio</span>
+        Desenvolvido por{" "}
+        <a
+          href="https://github.com/MauricioSts"
+          className="text-[#FF2E63] font-semibold"
+        >
+          Mauricio
+        </a>
       </footer>
     </div>
   );
