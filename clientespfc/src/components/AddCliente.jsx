@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { db } from "../firebase/config";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import toast from "react-hot-toast";
 
 function AddCliente() {
   const [nome, setNome] = useState("");
@@ -13,7 +14,7 @@ function AddCliente() {
 
   async function adicionarCliente() {
     if (!nome || !instagram || !numero || !produto || !tamanho || !valor) {
-      alert("Preencha todos os campos!");
+      toast.error("Preencha todos os campos!");
       return;
     }
 
@@ -21,7 +22,7 @@ function AddCliente() {
     const preco = parseFloat(valor);
 
     if (isNaN(numeroTel) || isNaN(preco)) {
-      alert("Número ou valor inválido!");
+      toast.error("Número ou valor inválido!");
       return;
     }
 
@@ -37,9 +38,10 @@ function AddCliente() {
         preco,
         data: new Date().toLocaleDateString("pt-BR"),
         createdAt: serverTimestamp(),
+        concluido: false, // adiciona o status inicial
       });
 
-      alert("Cliente adicionado com sucesso!");
+      toast.success("Cliente adicionado com sucesso!");
 
       // Limpa os campos
       setNome("");
@@ -50,7 +52,7 @@ function AddCliente() {
       setTamanho("");
     } catch (error) {
       console.error("Erro ao adicionar cliente:", error);
-      alert("Erro ao adicionar cliente. Verifique o console.");
+      toast.error("Erro ao adicionar cliente. Verifique o console.");
     } finally {
       setLoading(false);
     }

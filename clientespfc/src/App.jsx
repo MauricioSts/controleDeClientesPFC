@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
+import { Toaster, toast } from "react-hot-toast";
+
 import { db } from "./firebase/config";
 import {
   collection,
   addDoc,
-  getDocs,
   onSnapshot,
   query,
   orderBy,
+  serverTimestamp,
 } from "firebase/firestore";
 
 import AddCliente from "./components/AddCliente";
@@ -27,7 +29,7 @@ function App() {
 
   // 🔄 Carrega clientes do Firestore em tempo real
   useEffect(() => {
-    const q = query(clientesRef, orderBy("data", "desc"));
+    const q = query(clientesRef, orderBy("createdAt", "desc"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const lista = snapshot.docs.map((doc) => ({
         id: doc.id,
@@ -41,7 +43,15 @@ function App() {
   // ➕ Função para adicionar novo cliente ao Firestore
   const handleAddCliente = async () => {
     if (!nome || !produto || !valor) {
-      alert("Preencha nome, produto e valor!");
+      toast.error("Preencha todos os campos!");
+      return;
+    }
+
+    const numeroTel = parseFloat(numero);
+    const preco = parseFloat(valor);
+
+    if (isNaN(numeroTel) || isNaN(preco)) {
+      toast.error("Número ou valor inválido!");
       return;
     }
 
@@ -49,12 +59,16 @@ function App() {
       await addDoc(clientesRef, {
         nome,
         instagram,
-        numero,
+        numeroTel,
         produto,
         tamanho,
-        valor: parseFloat(valor),
+        preco,
         data,
+        createdAt: serverTimestamp(),
+        concluido: false,
       });
+
+      toast.success("Cliente adicionado com sucesso!");
 
       // limpa o form
       setNome("");
@@ -66,12 +80,13 @@ function App() {
       setData(new Date().toLocaleDateString("pt-BR"));
     } catch (error) {
       console.error("Erro ao adicionar cliente:", error);
-      alert("Erro ao salvar cliente 😢");
+      toast.error("Erro ao salvar cliente 😢");
     }
   };
 
   return (
     <div className="min-h-screen bg-[#1A0841] flex flex-col items-center py-6 px-3 sm:py-8 sm:px-4 md:py-10 md:px-8">
+      <Toaster position="top-right" reverseOrder={false} />
       <div className="w-full max-w-4xl bg-[#22104F] shadow-2xl rounded-2xl p-4 sm:p-6 md:p-8 border border-[#FF2E63]/30">
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center text-white mb-6 sm:mb-8 tracking-wide leading-tight">
           Gestão de Clientes{" "}
@@ -95,7 +110,7 @@ function App() {
             setValor={setValor}
             data={data}
             setData={setData}
-            onAddCliente={handleAddCliente} // 👈 novo
+            onAddCliente={handleAddCliente}
           />
         </div>
 

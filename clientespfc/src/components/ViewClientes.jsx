@@ -8,6 +8,7 @@ import {
   orderBy,
 } from "firebase/firestore";
 import { db } from "../firebase/config";
+import toast from "react-hot-toast";
 
 function ViewClientes() {
   const [clientes, setClientes] = useState([]);
@@ -38,7 +39,10 @@ function ViewClientes() {
   return (
     <div className="bg-[#2C1660] p-4 sm:p-6 rounded-xl shadow-lg border border-[#FF2E63]/40 text-white">
       <h2 className="text-xl sm:text-2xl font-semibold mb-4 sm:mb-6 text-center text-[#FF2E63]">
-        Lista de Clientes
+        Lista de Clientes{" "}
+        <span className="ml-2 bg-[#FF2E63] text-white px-2 py-1 rounded-full text-sm font-semibold">
+          {clientes.filter((c) => !c.concluido).length}
+        </span>
       </h2>
 
       {clientes.length === 0 ? (
