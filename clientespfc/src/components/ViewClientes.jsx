@@ -57,7 +57,7 @@ function ViewClientes({ clientes }) {
                 <span className="font-semibold text-[#FF2E63]">
                   {cliente.nome}
                 </span>{" "}
-                — @{cliente.instagram} • {cliente.numero} •{" "}
+                — @{cliente.instagram} • {cliente.numeroTel} •{" "}
                 <span className="font-medium">{cliente.produto}</span> (
                 {cliente.tamanho}) • R$
                 {Number(cliente.preco).toFixed(2)} • {cliente.novaData}
