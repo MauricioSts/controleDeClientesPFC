@@ -1,9 +1,6 @@
 import { useState } from "react";
-import { db } from "../firebase/config";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
-import toast from "react-hot-toast";
 
-function AddCliente() {
+function AddCliente({ onAddCliente }) {
   const [nome, setNome] = useState("");
   const [instagram, setInstagram] = useState("");
   const [numero, setNumero] = useState("");
@@ -12,50 +9,30 @@ function AddCliente() {
   const [valor, setValor] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function adicionarCliente() {
+  async function handleSubmit() {
     if (!nome || !instagram || !numero || !produto || !tamanho || !valor) {
-      toast.error("Preencha todos os campos!");
+      // A validação visual (toast) será feita no App.jsx
       return;
     }
 
-    const numeroTel = parseFloat(numero);
-    const preco = parseFloat(valor);
+    setLoading(true);//deixa o loading em true quando o onaddCliente adicionar o cliente seta o loading para false, por isso que tem o await 
+    await onAddCliente({
+      nome,
+      instagram,
+      numero,
+      produto,
+      tamanho,
+      valor,
+    });
+    setLoading(false);
 
-    if (isNaN(numeroTel) || isNaN(preco)) {
-      toast.error("Número ou valor inválido!");
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      await addDoc(collection(db, "clientes"), {
-        nome,
-        instagram,
-        numeroTel,
-        produto,
-        tamanho,
-        preco,
-        data: new Date().toLocaleDateString("pt-BR"),
-        createdAt: serverTimestamp(),
-        concluido: false, // adiciona o status inicial
-      });
-
-      toast.success("Cliente adicionado com sucesso!");
-
-      // Limpa os campos
-      setNome("");
-      setNumero("");
-      setInstagram("");
-      setProduto("");
-      setValor("");
-      setTamanho("");
-    } catch (error) {
-      console.error("Erro ao adicionar cliente:", error);
-      toast.error("Erro ao adicionar cliente. Verifique o console.");
-    } finally {
-      setLoading(false);
-    }
+    // Limpa os campos após adicionar
+    setNome("");
+    setInstagram("");
+    setNumero("");
+    setProduto("");
+    setTamanho("");
+    setValor("");
   }
 
   return (
@@ -113,7 +90,7 @@ function AddCliente() {
 
       {/* Botão */}
       <button
-        onClick={adicionarCliente}
+        onClick={handleSubmit}
         disabled={loading}
         className={`w-full mt-5 sm:mt-6 text-white font-semibold text-sm sm:text-base py-3 sm:py-3.5 rounded-lg transition duration-200 shadow-md ${
           loading

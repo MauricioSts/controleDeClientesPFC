@@ -1,49 +1,53 @@
-import { useEffect, useState } from "react";
-import { Toaster, toast } from "react-hot-toast";
-
-import { db } from "./firebase/config";
+import { useState, useEffect } from "react";
 import {
   collection,
   addDoc,
-  onSnapshot,
-  query,
-  orderBy,
+  getDocs,
   serverTimestamp,
 } from "firebase/firestore";
-
+import { db } from "./firebase/config";
+import { Toaster, toast } from "react-hot-toast";
 import AddCliente from "./components/AddCliente";
 import ViewClientes from "./components/ViewClientes";
-import "./index.css";
 
 function App() {
-  const [nome, setNome] = useState("");
-  const [instagram, setInstagram] = useState("");
-  const [numero, setNumero] = useState("");
-  const [produto, setProduto] = useState("");
-  const [tamanho, setTamanho] = useState("");
-  const [valor, setValor] = useState("");
-  const [data, setData] = useState(new Date().toLocaleDateString("pt-BR"));
   const [clientes, setClientes] = useState([]);
-
   const clientesRef = collection(db, "clientes");
 
-  // 🔄 Carrega clientes do Firestore em tempo real
+  // 🔁 Carrega clientes ao iniciar
   useEffect(() => {
-    const q = query(clientesRef, orderBy("createdAt", "desc"));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const lista = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setClientes(lista);
-    });
-    return () => unsubscribe();
+    async function carregarClientes() {
+      try {
+        const snapshot = await getDocs(clientesRef);//funcao propria do firebase que busca todos os documentos de uma coleçao
+        const lista = snapshot.docs.map((doc) => ({//o .map vai transformar cada snapshot em um objeto com id
+          id: doc.id,
+          ...doc.data(),//retorna todos os campos do documento
+        }));
+
+        // Ordena por data (clientes mais recentes primeiro)
+        lista.sort((a, b) => b.createdAt?.seconds - a.createdAt?.seconds);
+
+        setClientes(lista);// salva a lista de clientes
+      } catch (error) {
+        console.error("Erro ao buscar clientes:", error);
+        toast.error("Erro ao carregar clientes 😢");
+      }
+    }
+
+    carregarClientes();// a func é chamada 1 vez quando o componente é montado
   }, []);
 
-  // ➕ Função para adicionar novo cliente ao Firestore
-  const handleAddCliente = async () => {
-    if (!nome || !produto || !valor) {
-      toast.error("Preencha todos os campos!");
+  // ➕ Adiciona cliente no Firestore
+  const handleAddCliente = async ({
+    nome,
+    instagram,
+    numero,
+    produto,
+    tamanho,
+    valor,
+  }) => {
+    if (!nome || !instagram || !numero || !produto || !tamanho || !valor) {
+      toast.error("Preencha todos os campos obrigatórios!");
       return;
     }
 
@@ -56,28 +60,23 @@ function App() {
     }
 
     try {
-      await addDoc(clientesRef, {
+      const novoCliente = { //estou criando o objeto
         nome,
         instagram,
         numeroTel,
         produto,
         tamanho,
         preco,
-        data,
+        data: new Date().toLocaleDateString("pt-BR"),
         createdAt: serverTimestamp(),
         concluido: false,
-      });
+      };
+
+      const docRef = await addDoc(clientesRef, novoCliente);//aqui estou salvando no firebase
+
+      setClientes((prev) => [{ id: docRef.id, ...novoCliente }, ...prev]);
 
       toast.success("Cliente adicionado com sucesso!");
-
-      // limpa o form
-      setNome("");
-      setInstagram("");
-      setNumero("");
-      setProduto("");
-      setTamanho("");
-      setValor("");
-      setData(new Date().toLocaleDateString("pt-BR"));
     } catch (error) {
       console.error("Erro ao adicionar cliente:", error);
       toast.error("Erro ao salvar cliente 😢");
@@ -85,52 +84,22 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#1A0841] flex flex-col items-center py-6 px-3 sm:py-8 sm:px-4 md:py-10 md:px-8">
-      <Toaster position="top-right" reverseOrder={false} />
-      <div className="w-full max-w-4xl bg-[#22104F] shadow-2xl rounded-2xl p-4 sm:p-6 md:p-8 border border-[#FF2E63]/30">
-        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center text-white mb-6 sm:mb-8 tracking-wide leading-tight">
-          Gestão de Clientes{" "}
-          <span className="text-[#FF2E63] font-extrabold">PFC</span>
-        </h1>
+    <div className="min-h-screen bg-[#1A0841] text-white flex flex-col items-center py-8 px-4 sm:px-6">
+      <Toaster position="top-center" />
 
-        {/* Formulário */}
-        <div className="mb-8 sm:mb-10">
-          <AddCliente
-            nome={nome}
-            setNome={setNome}
-            instagram={instagram}
-            setInstagram={setInstagram}
-            numero={numero}
-            setNumero={setNumero}
-            produto={produto}
-            setProduto={setProduto}
-            tamanho={tamanho}
-            setTamanho={setTamanho}
-            valor={valor}
-            setValor={setValor}
-            data={data}
-            setData={setData}
-            onAddCliente={handleAddCliente}
-          />
-        </div>
+      <h1 className="text-3xl sm:text-4xl font-bold mb-8 text-[#FF2E63] drop-shadow-md">
+        Sistema de Clientes
+      </h1>
 
-        {/* Lista */}
-        <div className="overflow-x-auto">
-          <ViewClientes clientes={clientes} />
-        </div>
+      {/* Formulário para adicionar cliente */}
+      <div className="w-full max-w-2xl mb-10">
+        <AddCliente onAddCliente={handleAddCliente} />
       </div>
 
-      <footer className="mt-8 text-gray-300 text-sm text-center px-4">
-        Desenvolvido por{" "}
-        <a
-          href="https://github.com/MauricioSts"
-          className="text-[#FF2E63] font-semibold"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Mauricio
-        </a>
-      </footer>
+      {/* Lista de clientes */}
+      <div className="w-full max-w-4xl">
+        <ViewClientes clientes={clientes} />
+      </div>
     </div>
   );
 }
