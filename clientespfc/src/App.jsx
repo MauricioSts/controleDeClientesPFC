@@ -1,53 +1,45 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { Toaster, toast } from "react-hot-toast";
+import { motion } from "framer-motion";
+
+import { db } from "./firebase/config";
 import {
   collection,
   addDoc,
-  getDocs,
+  onSnapshot,
+  query,
+  orderBy,
   serverTimestamp,
 } from "firebase/firestore";
-import { db } from "./firebase/config";
-import { Toaster, toast } from "react-hot-toast";
+
 import AddCliente from "./components/AddCliente";
 import ViewClientes from "./components/ViewClientes";
+import Dashboard from "./components/Dashboard";
+import "./index.css";
 
 function App() {
   const [clientes, setClientes] = useState([]);
   const clientesRef = collection(db, "clientes");
 
-  // 🔁 Carrega clientes ao iniciar
+  // 🔄 Carrega clientes do Firestore em tempo real
   useEffect(() => {
-    async function carregarClientes() {
-      try {
-        const snapshot = await getDocs(clientesRef);//funcao propria do firebase que busca todos os documentos de uma coleçao
-        const lista = snapshot.docs.map((doc) => ({//o .map vai transformar cada snapshot em um objeto com id
-          id: doc.id,
-          ...doc.data(),//retorna todos os campos do documento
-        }));
-
-        // Ordena por data (clientes mais recentes primeiro)
-        lista.sort((a, b) => b.createdAt?.seconds - a.createdAt?.seconds);
-
-        setClientes(lista);// salva a lista de clientes
-      } catch (error) {
-        console.error("Erro ao buscar clientes:", error);
-        toast.error("Erro ao carregar clientes 😢");
-      }
-    }
-
-    carregarClientes();// a func é chamada 1 vez quando o componente é montado
+    const q = query(clientesRef, orderBy("createdAt", "desc"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const lista = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setClientes(lista);
+    });
+    return () => unsubscribe();
   }, []);
 
-  // ➕ Adiciona cliente no Firestore
-  const handleAddCliente = async ({
-    nome,
-    instagram,
-    numero,
-    produto,
-    tamanho,
-    valor,
-  }) => {
-    if (!nome || !instagram || !numero || !produto || !tamanho || !valor) {
-      toast.error("Preencha todos os campos obrigatórios!");
+  // ➕ Adiciona cliente recebido do AddCliente
+  const handleAddCliente = async (cliente) => {
+    const { nome, instagram, numero, produto, tamanho, valor } = cliente;
+
+    if (!nome || !produto || !valor) {
+      toast.error("Preencha todos os campos!");
       return;
     }
 
@@ -60,7 +52,7 @@ function App() {
     }
 
     try {
-      const novoCliente = { //estou criando o objeto
+      await addDoc(clientesRef, {
         nome,
         instagram,
         numeroTel,
@@ -70,11 +62,7 @@ function App() {
         data: new Date().toLocaleDateString("pt-BR"),
         createdAt: serverTimestamp(),
         concluido: false,
-      };
-
-      const docRef = await addDoc(clientesRef, novoCliente);//aqui estou salvando no firebase
-
-      setClientes((prev) => [{ id: docRef.id, ...novoCliente }, ...prev]);
+      });
 
       toast.success("Cliente adicionado com sucesso!");
     } catch (error) {
@@ -84,22 +72,63 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#1A0841] text-white flex flex-col items-center py-8 px-4 sm:px-6">
-      <Toaster position="top-center" />
+    <div className="min-h-screen bg-[#1A0841] flex flex-col items-center justify-start py-10 px-4 sm:px-6 md:px-10">
+      <Toaster position="top-right" reverseOrder={false} />
 
-      <h1 className="text-3xl sm:text-4xl font-bold mb-8 text-[#FF2E63] drop-shadow-md">
-        Sistema de Clientes
-      </h1>
+      <div className="w-full max-w-5xl bg-gradient-to-br from-[#22104F] to-[#2C1660] border border-[#FF2E63]/30 rounded-3xl shadow-2xl shadow-[#00000055] backdrop-blur-xl p-6 sm:p-8 md:p-10">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-center mb-10 tracking-tight text-white">
+          Gestão de Clientes{" "}
+          <span className="text-[#FF2E63] drop-shadow-[0_0_8px_#FF2E63]">
+            PFC
+          </span>
+        </h1>
 
-      {/* Formulário para adicionar cliente */}
-      <div className="w-full max-w-2xl mb-10">
-        <AddCliente onAddCliente={handleAddCliente} />
+        {/* Formulário */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="bg-[#2E1669]/40 backdrop-blur-md border border-[#FF2E63]/20 rounded-2xl p-5 sm:p-7 mb-10 shadow-inner"
+        >
+          <AddCliente onAddCliente={handleAddCliente} />
+        </motion.section>
+
+        {/* Lista de clientes */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="bg-[#2E1669]/40 backdrop-blur-md border border-[#FF2E63]/20 rounded-2xl p-4 sm:p-6 mb-10 shadow-inner"
+        >
+          <h2 className="text-lg sm:text-xl font-semibold text-white mb-4">
+            Clientes cadastrados
+          </h2>
+          <div className="overflow-x-auto">
+            <ViewClientes />
+          </div>
+        </motion.section>
+
+        {/* Dashboard */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+        >
+          <Dashboard />
+        </motion.section>
       </div>
 
-      {/* Lista de clientes */}
-      <div className="w-full max-w-4xl">
-        <ViewClientes clientes={clientes} />
-      </div>
+      <footer className="mt-8 text-gray-400 text-sm text-center">
+        Desenvolvido por{" "}
+        <a
+          href="https://github.com/MauricioSts"
+          className="text-[#FF2E63] font-medium hover:text-[#ff517f] transition-colors"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Mauricio
+        </a>
+      </footer>
     </div>
   );
 }
