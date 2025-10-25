@@ -14,7 +14,6 @@ import {
 
 import AddCliente from "./components/AddCliente";
 import ViewClientes from "./components/ViewClientes";
-import Dashboard from "./components/Dashboard";
 import "./index.css";
 
 function App() {
@@ -34,10 +33,10 @@ function App() {
   }, []);
 
   const handleAddCliente = async (cliente) => {
-    const { nome, instagram, numero, produto, tamanho, valor } = cliente;
+    const { nome, instagram, numero, produto, tamanho, valor, versao, numeroCamisa, nomeCamisa } = cliente;
 
     if (!nome || !produto || !valor) {
-      toast.error("Preencha todos os campos!");
+      toast.error("Preencha todos os campos obrigatórios!");
       return;
     }
 
@@ -57,69 +56,61 @@ function App() {
         produto,
         tamanho,
         preco,
+        versao: versao || "fan",
+        numeroCamisa: numeroCamisa || "",
+        nomeCamisa: nomeCamisa || "",
         data: new Date().toLocaleDateString("pt-BR"),
         createdAt: serverTimestamp(),
         concluido: false,
         pedidoFeito: false,
-        pedidoEnviado: false,
       });
 
-      toast.success("Cliente adicionado com sucesso!");
+      toast.success("Pedido adicionado com sucesso!");
     } catch (error) {
-      console.error("Erro ao adicionar cliente:", error);
-      toast.error("Erro ao salvar cliente 😢");
+      console.error("Erro ao adicionar pedido:", error);
+      toast.error("Erro ao salvar pedido 😢");
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#1A0841] flex flex-col items-center justify-start py-10 px-6 sm:px-10 md:px-12">
+    <div className="min-h-screen" style={{background: 'linear-gradient(135deg, #0D0630 0%, #1a0a4a 50%, #0D0630 100%)'}}>
       <Toaster position="top-right" reverseOrder={false} />
 
-      <div className="w-full max-w-7xl bg-gradient-to-br from-[#22104F] to-[#2C1660] border border-[#FF2E63]/30 rounded-3xl shadow-2xl shadow-[#00000055] backdrop-blur-xl p-6 sm:p-8 md:p-10">
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-center mb-10 tracking-tight text-white">
-          Gestão de Clientes{" "}
-          <span className="text-[#FF2E63] drop-shadow-[0_0_8px_#FF2E63]">
-            PFC
-          </span>
-        </h1>
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-4xl md:text-5xl font-bold mb-2 drop-shadow-lg" style={{color: '#FF2D5B'}}>
+            Sistema de Pedidos
+          </h1>
+          <p className="text-xl" style={{color: '#FFFFFF'}}>Administração de Pedidos P.F.C</p>
+        </div>
 
-        <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="bg-[#2E1669]/40 backdrop-blur-md border border-[#FF2E63]/20 rounded-2xl p-6 sm:p-8 mb-10 shadow-inner"
-        >
+        {/* Formulário */}
+        <div className="mb-8">
           <AddCliente onAddCliente={handleAddCliente} />
-        </motion.section>
+        </div>
 
-        <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="bg-[#2E1669]/40 backdrop-blur-md border border-[#FF2E63]/20 rounded-2xl p-6 sm:p-8 mb-10 shadow-inner"
-        >
-          <h2 className="text-lg sm:text-xl font-semibold text-white mb-4">
-            Clientes cadastrados
-          </h2>
-          <div className="overflow-x-auto">
-            <ViewClientes />
+        {/* Lista de Pedidos */}
+        <div className="mb-8">
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-bold mb-2" style={{color: '#FF2D5B'}}>
+              Lista de Pedidos
+            </h2>
+            <p style={{color: '#FFFFFF'}}>Gerencie seus pedidos de forma eficiente</p>
           </div>
-        </motion.section>
+          <ViewClientes />
+        </div>
 
-        <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
-        >
-          <Dashboard />
-        </motion.section>
       </div>
 
-      <footer className="mt-8 text-gray-400 text-sm text-center">
+      <footer className="mt-8 text-sm text-center" style={{color: '#FFFFFF'}}>
         Desenvolvido por{" "}
         <a
           href="https://github.com/MauricioSts"
-          className="text-[#FF2E63] font-medium hover:text-[#ff517f] transition-colors"
+          className="font-medium transition-colors"
+          style={{color: '#FF2D5B'}}
+          onMouseEnter={(e) => e.target.style.color = '#FF6B8A'}
+          onMouseLeave={(e) => e.target.style.color = '#FF2D5B'}
           target="_blank"
           rel="noopener noreferrer"
         >
