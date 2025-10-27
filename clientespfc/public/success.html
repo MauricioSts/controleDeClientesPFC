@@ -4,6 +4,66 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Assinatura Confirmada! - JerseysAndBits</title>
+  <script type="module">
+    // Configuração do Firebase
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js';
+    import { getFirestore, collection, query, where, getDocs, setDoc, doc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDj7WHl4YQJ7m8j4L6RB7I7zq8c6FKzH6FY",
+      authDomain: "pfcsports-ce4f6.firebaseapp.com",
+      projectId: "pfcsports-ce4f6",
+      storageBucket: "pfcsports-ce4f6.appspot.com",
+      messagingSenderId: "1084649781309",
+      appId: "1:1084649781309:web:c4f5d7a1e7f2c6e8a9b0c1"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Função para criar requisição de upgrade
+    async function createUpgradeRequest(email) {
+      try {
+        console.log('Criando requisição de upgrade para:', email);
+        
+        // Buscar se já existe um documento com esse email
+        const usersRef = collection(db, 'users');
+        const q = query(usersRef, where('email', '==', email));
+        const querySnapshot = await getDocs(q);
+        
+        if (!querySnapshot.empty) {
+          // Usuário existe, atualizar
+          const userDoc = querySnapshot.docs[0];
+          await setDoc(doc(db, 'users', userDoc.id), {
+            email: email,
+            subscription: {
+              plan: 'free',
+              pendingUpgrade: true,
+              pendingUpgradeDate: serverTimestamp(),
+            }
+          }, { merge: true });
+          console.log('Requisição criada para usuário existente:', userDoc.id);
+        } else {
+          // Usuário não existe, precisamos criar (mas sem userId ainda)
+          console.warn('Usuário não encontrado no Firestore. O email será processado pelo admin.');
+        }
+      } catch (error) {
+        console.error('Erro ao criar requisição:', error);
+      }
+    }
+
+    // Executar quando a página carregar
+    window.addEventListener('DOMContentLoaded', async () => {
+      const userEmail = sessionStorage.getItem('pendingUpgradeEmail');
+      if (userEmail) {
+        console.log('Email encontrado:', userEmail);
+        await createUpgradeRequest(userEmail);
+        sessionStorage.removeItem('pendingUpgradeEmail');
+      } else {
+        console.warn('Nenhum email encontrado no sessionStorage');
+      }
+    });
+  </script>
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;

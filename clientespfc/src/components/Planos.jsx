@@ -50,6 +50,13 @@ function Planos({ planoAtual = "free" }) {
     const stripeLink = "https://buy.stripe.com/test_9B63cxffagnB4Wgc4Y1B600";
     
     if (plano.nome === "PRO") {
+      // Salvar email na sessionStorage para usar na página de sucesso
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const userEmail = localStorage.getItem('userEmail') || window.prompt('Digite seu email:');
+        if (userEmail) {
+          sessionStorage.setItem('pendingUpgradeEmail', userEmail);
+        }
+      }
       window.location.href = stripeLink;
     }
   };

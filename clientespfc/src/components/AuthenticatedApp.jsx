@@ -24,6 +24,13 @@ function AuthenticatedApp({ isAdmin, onShowAdmin }) {
   const [canAddOrder, setCanAddOrder] = useState(true);
   const [loading, setLoading] = useState(true);
 
+  // Salvar email do usuário no localStorage
+  useEffect(() => {
+    if (currentUser && currentUser.email) {
+      localStorage.setItem('userEmail', currentUser.email);
+    }
+  }, [currentUser]);
+
   // Buscar plano do usuário e contar pedidos do mês
   useEffect(() => {
     if (!currentUser) return;
