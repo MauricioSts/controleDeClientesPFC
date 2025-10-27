@@ -152,8 +152,8 @@ https://console.firebase.google.com/project/pfcsports-ce4f6/firestore
 # 1. Login
 firebase login
 
-# 2. Configurar chave Stripe (SUBSTITUIR pela nova!)
-firebase functions:config:set stripe.secret_key="sua_nova_chave"
+# 2. Configurar chave Stripe
+firebase functions:config:set stripe.secret_key="SUA_CHAVE_AQUI"
 
 # 3. Deploy (para pegar URL do webhook)
 firebase deploy --only functions

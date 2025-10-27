@@ -13,7 +13,7 @@ firebase login
 firebase use pfcsports-ce4f6
 
 # 4. Configurar Stripe
-firebase functions:config:set stripe.secret_key="sk_test_51SMz95PpK9ARB6cMoxHEqMsIomS4LDFCwc8064qen0uj965QofWiubbqRqFZXjEHT1N9YOw4p6bEThwS6N4fFtV400jHeQJqRl"
+firebase functions:config:set stripe.secret_key="SUA_CHAVE_STRIPE_AQUI"
 
 # 5. Deploy functions
 firebase deploy --only functions
