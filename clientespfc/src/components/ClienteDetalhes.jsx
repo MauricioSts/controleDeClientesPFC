@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { db } from "../firebase/config";
 import { toast } from "react-hot-toast";
 import { motion } from "framer-motion";
 import { X, Save, Trash2, Edit3 } from "lucide-react";
 
-function ClienteDetalhes({ cliente, onClose, onUpdate }) {
+function ClienteDetalhes({ cliente, onClose }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedCliente, setEditedCliente] = useState({
     nome: cliente.nome || "",
@@ -27,7 +27,6 @@ function ClienteDetalhes({ cliente, onClose, onUpdate }) {
       
       toast.success("Cliente atualizado com sucesso!");
       setIsEditing(false);
-      onUpdate();
     } catch (error) {
       console.error("Erro ao atualizar cliente:", error);
       toast.error("Erro ao atualizar cliente");
@@ -52,7 +51,6 @@ function ClienteDetalhes({ cliente, onClose, onUpdate }) {
       const ref = doc(db, "clientes", cliente.id);
       await updateDoc(ref, { concluido: !cliente.concluido });
       toast.success(cliente.concluido ? "Cliente reaberto" : "Cliente concluído!");
-      onUpdate();
     } catch (error) {
       console.error("Erro ao atualizar status:", error);
       toast.error("Erro ao atualizar status");
@@ -64,7 +62,6 @@ function ClienteDetalhes({ cliente, onClose, onUpdate }) {
       const ref = doc(db, "clientes", cliente.id);
       await updateDoc(ref, { pedidoFeito: !cliente.pedidoFeito });
       toast.success(cliente.pedidoFeito ? "Pedido desmarcado" : "Pedido marcado como feito!");
-      onUpdate();
     } catch (error) {
       console.error("Erro ao atualizar pedido:", error);
       toast.error("Erro ao atualizar pedido");
@@ -83,20 +80,20 @@ function ClienteDetalhes({ cliente, onClose, onUpdate }) {
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
-        className="bg-[#1A0841] border border-[#FF2E63]/30 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+        className="bg-[#1A0841] border border-[#3B82F6]/30 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-[#FF2E63]/20">
+        <div className="flex items-center justify-between p-6 border-b border-[#3B82F6]/20">
           <h2 className="text-2xl font-bold text-white">
             Detalhes do Cliente
           </h2>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setIsEditing(!isEditing)}
-              className="p-2 bg-[#FF2E63]/20 hover:bg-[#FF2E63]/30 rounded-lg transition-colors"
+              className="p-2 bg-[#3B82F6]/20 hover:bg-[#3B82F6]/30 rounded-lg transition-colors"
               title={isEditing ? "Cancelar edição" : "Editar"}
             >
-              <Edit3 className="w-5 h-5 text-[#FF2E63]" />
+              <Edit3 className="w-5 h-5 text-[#3B82F6]" />
             </button>
             <button
               onClick={onClose}
@@ -152,7 +149,7 @@ function ClienteDetalhes({ cliente, onClose, onUpdate }) {
                   onChange={(e) =>
                     setEditedCliente({ ...editedCliente, nome: e.target.value })
                   }
-                  className="w-full px-3 py-2 bg-[#2C1660] border border-[#FF2E63]/30 rounded-lg text-white focus:border-[#FF2E63] focus:outline-none"
+                  className="w-full px-3 py-2 bg-[#2C1660] border border-[#3B82F6]/30 rounded-lg text-white focus:border-[#3B82F6] focus:outline-none"
                 />
               ) : (
                 <p className="text-white font-medium">{cliente.nome}</p>
@@ -173,7 +170,7 @@ function ClienteDetalhes({ cliente, onClose, onUpdate }) {
                       instagram: e.target.value,
                     })
                   }
-                  className="w-full px-3 py-2 bg-[#2C1660] border border-[#FF2E63]/30 rounded-lg text-white focus:border-[#FF2E63] focus:outline-none"
+                  className="w-full px-3 py-2 bg-[#2C1660] border border-[#3B82F6]/30 rounded-lg text-white focus:border-[#3B82F6] focus:outline-none"
                 />
               ) : (
                 <p className="text-white">@{cliente.instagram}</p>
@@ -194,7 +191,7 @@ function ClienteDetalhes({ cliente, onClose, onUpdate }) {
                       numeroTel: e.target.value,
                     })
                   }
-                  className="w-full px-3 py-2 bg-[#2C1660] border border-[#FF2E63]/30 rounded-lg text-white focus:border-[#FF2E63] focus:outline-none"
+                  className="w-full px-3 py-2 bg-[#2C1660] border border-[#3B82F6]/30 rounded-lg text-white focus:border-[#3B82F6] focus:outline-none"
                 />
               ) : (
                 <p className="text-white">{cliente.numeroTel}</p>
@@ -215,7 +212,7 @@ function ClienteDetalhes({ cliente, onClose, onUpdate }) {
                       produto: e.target.value,
                     })
                   }
-                  className="w-full px-3 py-2 bg-[#2C1660] border border-[#FF2E63]/30 rounded-lg text-white focus:border-[#FF2E63] focus:outline-none"
+                  className="w-full px-3 py-2 bg-[#2C1660] border border-[#3B82F6]/30 rounded-lg text-white focus:border-[#3B82F6] focus:outline-none"
                 />
               ) : (
                 <p className="text-white">{cliente.produto}</p>
@@ -236,7 +233,7 @@ function ClienteDetalhes({ cliente, onClose, onUpdate }) {
                       tamanho: e.target.value,
                     })
                   }
-                  className="w-full px-3 py-2 bg-[#2C1660] border border-[#FF2E63]/30 rounded-lg text-white focus:border-[#FF2E63] focus:outline-none"
+                  className="w-full px-3 py-2 bg-[#2C1660] border border-[#3B82F6]/30 rounded-lg text-white focus:border-[#3B82F6] focus:outline-none"
                 />
               ) : (
                 <p className="text-white">{cliente.tamanho}</p>
@@ -258,7 +255,7 @@ function ClienteDetalhes({ cliente, onClose, onUpdate }) {
                       preco: e.target.value,
                     })
                   }
-                  className="w-full px-3 py-2 bg-[#2C1660] border border-[#FF2E63]/30 rounded-lg text-white focus:border-[#FF2E63] focus:outline-none"
+                  className="w-full px-3 py-2 bg-[#2C1660] border border-[#3B82F6]/30 rounded-lg text-white focus:border-[#3B82F6] focus:outline-none"
                 />
               ) : (
                 <p className="text-white">R$ {Number(cliente.preco).toFixed(2)}</p>
@@ -275,7 +272,7 @@ function ClienteDetalhes({ cliente, onClose, onUpdate }) {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between p-6 border-t border-[#FF2E63]/20">
+        <div className="flex items-center justify-between p-6 border-t border-[#3B82F6]/20">
           <button
             onClick={handleDelete}
             className="flex items-center gap-2 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg transition-colors"
@@ -287,7 +284,7 @@ function ClienteDetalhes({ cliente, onClose, onUpdate }) {
           {isEditing && (
             <button
               onClick={handleSave}
-              className="flex items-center gap-2 px-6 py-2 bg-[#FF2E63] hover:bg-[#ff517f] text-white rounded-lg transition-colors"
+              className="flex items-center gap-2 px-6 py-2 bg-[#3B82F6] hover:bg-[#ff517f] text-white rounded-lg transition-colors"
             >
               <Save className="w-4 h-4" />
               Salvar

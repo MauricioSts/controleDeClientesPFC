@@ -1,0 +1,356 @@
+==========================================
+🎯 CÓDIGO PRONTO PARA USAR - INTEGRAÇÃO STRIPE
+==========================================
+
+Este arquivo contém exemplos de código para integrar Stripe em seu aplicativo.
+
+==========================================
+1. ATUALIZAR PACKAGE.JSON
+==========================================
+
+Adicione esta dependência:
+
+```bash
+npm install @stripe/stripe-js
+```
+
+==========================================
+2. CRIAR ARQUIVO .ENV
+==========================================
+
+Na raiz do projeto, crie `.env`:
+
+```
+VITE_STRIPE_PUBLISHABLE_KEY=pk_test_xxxxxxxxxxxxx
+```
+
+==========================================
+3. ATUALIZAR Planos.jsx
+==========================================
+
+Substitua a função `handleSelect` por esta:
+
+```javascript
+import { loadStripe } from "@stripe/stripe-js";
+import { useAuth } from "../contexts/AuthContext";
+
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+
+function Planos({ planoAtual = "free" }) {
+  const { currentUser } = useAuth();
+  
+  const handleSelect = async (plano) => {
+    if (plano.nome === "FREE") return;
+    
+    try {
+      const priceId = "price_xxxxx"; // Substitua pelo seu Price ID do Stripe (PRO)
+      
+      // Criar sessão de checkout no seu backend
+      const response = await fetch('SUA_API_URL/api/create-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          priceId,
+          userId: currentUser.uid,
+          email: currentUser.email,
+          planName: plano.nome
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Erro ao criar sessão');
+      }
+      
+      const { sessionId } = await response.json();
+      
+      // Redirecionar para Stripe Checkout
+      const stripe = await stripePromise;
+      const { error } = await stripe.redirectToCheckout({ sessionId });
+      
+      if (error) {
+        alert(error.message);
+      }
+    } catch (error) {
+      console.error("Erro:", error);
+      alert("Erro ao processar pagamento. Tente novamente.");
+    }
+  };
+
+  // ... resto do código do componente ...
+}
+```
+
+==========================================
+4. BACKEND SIMPLES (Vercel Functions)
+==========================================
+
+Crie `api/create-checkout.js` na raiz:
+
+```javascript
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  try {
+    const { priceId, userId, email, planName } = req.body;
+
+    const session = await stripe.checkout.sessions.create({
+      mode: 'subscription',
+      customer_email: email,
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price: priceId,
+          quantity: 1,
+        },
+      ],
+      success_url: `${req.headers.origin}/success.html?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${req.headers.origin}/cancel.html`,
+      metadata: {
+        userId,
+        planName,
+      },
+      subscription_data: {
+        metadata: {
+          userId,
+          planName,
+        },
+      },
+    });
+
+    res.json({ sessionId: session.id });
+  } catch (error) {
+    console.error('Erro:', error);
+    res.status(500).json({ error: error.message });
+  }
+}
+```
+
+==========================================
+5. WEBHOOK HANDLER (Atualizar Status)
+==========================================
+
+Crie `api/webhook.js`:
+
+```javascript
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const admin = require('firebase-admin');
+
+// Inicializar Firebase Admin
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert({
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+    }),
+  });
+}
+
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const sig = req.headers['stripe-signature'];
+  const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+  let event;
+
+  try {
+    event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+  } catch (err) {
+    console.error('Webhook signature verification failed:', err.message);
+    return res.status(400).json({ error: 'Webhook Error' });
+  }
+
+  // Handle the event
+  if (event.type === 'checkout.session.completed') {
+    const session = event.data.object;
+    
+    // Atualizar usuário no Firebase
+    await admin.firestore().collection('users').doc(session.metadata.userId).set({
+      subscription: {
+        plan: session.metadata.planName.toLowerCase(),
+        status: 'active',
+        stripeCustomerId: session.customer,
+        stripeSubscriptionId: session.subscription,
+        currentPeriodEnd: new Date(session.subscription_details.current_period_end * 1000),
+      }
+    }, { merge: true });
+    
+    console.log('Subscription activated for user:', session.metadata.userId);
+  }
+
+  if (event.type === 'customer.subscription.deleted') {
+    const subscription = event.data.object;
+    
+    // Remover assinatura do usuário
+    await admin.firestore().collection('users')
+      .where('subscription.stripeSubscriptionId', '==', subscription.id)
+      .get()
+      .then((querySnapshot) => {
+        querySnapshot.forEach((doc) => {
+          doc.ref.update({
+            'subscription.status': 'cancelled',
+            'subscription.currentPeriodEnd': admin.firestore.FieldValue.delete(),
+          });
+        });
+      });
+  }
+
+  res.json({ received: true });
+}
+
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
+```
+
+==========================================
+6. ATUALIZAR AuthenticatedApp.jsx
+==========================================
+
+Adicione verificação de limites:
+
+```javascript
+import { useState, useEffect } from "react";
+import { doc, getDoc, query, collection, where, getDocs } from "firebase/firestore";
+
+function AuthenticatedApp() {
+  const { currentUser } = useAuth();
+  const [userPlan, setUserPlan] = useState("free");
+  const [pedidosDoMes, setPedidosDoMes] = useState(0);
+  const [limitePedidos, setLimitePedidos] = useState(10);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!currentUser) return;
+
+      // Buscar plano do usuário
+      const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+      if (userDoc.exists()) {
+        const data = userDoc.data();
+        const plan = data.subscription?.plan || "free";
+        setUserPlan(plan);
+        
+        // Definir limites baseado no plano
+        setLimitePedidos(plan === "free" ? 10 : -1);
+      }
+
+      // Contar pedidos do mês
+      const inicioMes = new Date();
+      inicioMes.setDate(1);
+      inicioMes.setHours(0, 0, 0, 0);
+
+      const pedidosRef = query(
+        collection(db, "clientes"),
+        where("userId", "==", currentUser.uid)
+      );
+
+      const snapshot = await getDocs(pedidosRef);
+      const pedidos = snapshot.docs.filter(doc => {
+        const data = doc.data();
+        if (data.createdAt) {
+          return data.createdAt.toDate() >= inicioMes;
+        }
+        return false;
+      });
+
+      setPedidosDoMes(pedidos.length);
+    };
+
+    fetchUserData();
+  }, [currentUser]);
+
+  const canAddOrder = limitePedidos === -1 || pedidosDoMes < limitePedidos;
+
+  const handleAddCliente = async (cliente) => {
+    if (!canAddOrder) {
+      toast.error("Você atingiu o limite do plano FREE. Faça upgrade para PRO!");
+      return;
+    }
+    
+    // ... resto do código ...
+  };
+
+  return (
+    <div>
+      {!canAddOrder && (
+        <div className="mb-4 p-4 rounded-xl" style={{ backgroundColor: '#ef4444', color: '#fff' }}>
+          <p>
+            ⚠️ Limite de pedidos atingido! Faça upgrade para PRO.
+          </p>
+        </div>
+      )}
+      
+      <div className="mb-4 p-4 rounded-xl" style={{ backgroundColor: '#1e293b', border: '1px solid #3B82F6' }}>
+        <p style={{ color: '#fff' }}>
+          Plano: <strong>{userPlan.toUpperCase()}</strong> | 
+          Pedidos este mês: {pedidosDoMes} / {limitePedidos === -1 ? '∞' : limitePedidos}
+        </p>
+      </div>
+
+      {/* ... resto do código ... */}
+    </div>
+  );
+}
+```
+
+==========================================
+7. CONFIGURAR STRIPE DASHBOARD
+==========================================
+
+1. Acesse: https://dashboard.stripe.com
+2. Vá em: Developers → API keys
+3. Copie: Publishable key (pública) e Secret key (privada)
+4. Cole no arquivo `.env`
+
+Acesse: Developers → Webhooks
+5. Clique: + Add endpoint
+6. URL: https://yourapp.vercel.app/api/webhook
+7. Events: 
+   - checkout.session.completed
+   - customer.subscription.deleted
+8. Copie o "Signing secret"
+
+==========================================
+8. TESTAR
+==========================================
+
+Use cartões de teste do Stripe:
+
+Sucesso:
+- Número: 4242 4242 4242 4242
+- Data: qualquer futura
+- CVC: qualquer 3 dígitos
+
+Recusado:
+- Número: 4000 0000 0000 0002
+
+==========================================
+9. DEPLOY
+==========================================
+
+Vercel:
+```bash
+npm install -g vercel
+vercel
+```
+
+Configure environment variables:
+- STRIPE_SECRET_KEY
+- STRIPE_WEBHOOK_SECRET
+- FIREBASE_PROJECT_ID
+- FIREBASE_PRIVATE_KEY
+- FIREBASE_CLIENT_EMAIL
+
+==========================================
+
+Pronto! Agora você tem um sistema de assinatura funcional! 🚀
+

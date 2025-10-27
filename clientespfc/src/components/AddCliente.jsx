@@ -50,9 +50,9 @@ function AddCliente({ onAddCliente }) {
   }
 
   return (
-    <div className="backdrop-blur-sm rounded-2xl p-8 shadow-2xl" style={{backgroundColor: '#0D0630', border: '1px solid #FF2D5B'}}>
+    <div className="backdrop-blur-sm rounded-2xl p-8 shadow-2xl" style={{backgroundColor: '#1e293b', border: '1px solid #3B82F6'}}>
       <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold mb-2" style={{color: '#FF2D5B'}}>
+        <h2 className="text-3xl font-bold mb-2" style={{color: '#3B82F6'}}>
           Adicionar Pedido
         </h2>
         <p style={{color: '#FFFFFF'}}>
@@ -63,7 +63,7 @@ function AddCliente({ onAddCliente }) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Nome */}
         <div>
-          <label className="block text-sm font-medium mb-2" style={{color: '#FF2D5B'}}>
+          <label className="block text-sm font-medium mb-2" style={{color: '#3B82F6'}}>
             Nome *
           </label>
           <input
@@ -72,16 +72,15 @@ function AddCliente({ onAddCliente }) {
             type="text"
             placeholder="Nome do cliente"
             className="w-full px-4 py-3 rounded-xl text-white focus:outline-none focus:ring-2 focus:border-transparent transition-all"
-            style={{backgroundColor: '#0D0630', border: '1px solid #FF2D5B', color: '#FFFFFF'}}
-            onFocus={(e) => e.target.style.borderColor = '#FF6B8A'}
-            onBlur={(e) => e.target.style.borderColor = '#FF2D5B'}
-            placeholder="Nome do cliente"
+            style={{backgroundColor: '#1e293b', border: '1px solid #3B82F6', color: '#FFFFFF'}}
+            onFocus={(e) => e.target.style.borderColor = '#14B8A6'}
+            onBlur={(e) => e.target.style.borderColor = '#3B82F6'}
           />
         </div>
 
         {/* Instagram */}
         <div>
-          <label className="block text-sm font-medium mb-2" style={{color: '#FF2D5B'}}>
+          <label className="block text-sm font-medium mb-2" style={{color: '#3B82F6'}}>
             Instagram
           </label>
           <input
@@ -90,16 +89,15 @@ function AddCliente({ onAddCliente }) {
             type="text"
             placeholder="@usuario"
             className="w-full px-4 py-3 rounded-xl text-white focus:outline-none focus:ring-2 focus:border-transparent transition-all"
-            style={{backgroundColor: '#0D0630', border: '1px solid #FF2D5B', color: '#FFFFFF'}}
-            onFocus={(e) => e.target.style.borderColor = '#FF6B8A'}
-            onBlur={(e) => e.target.style.borderColor = '#FF2D5B'}
-            placeholder="@usuario"
+            style={{backgroundColor: '#1e293b', border: '1px solid #3B82F6', color: '#FFFFFF'}}
+            onFocus={(e) => e.target.style.borderColor = '#14B8A6'}
+            onBlur={(e) => e.target.style.borderColor = '#3B82F6'}
           />
         </div>
 
         {/* Telefone */}
         <div>
-          <label className="block text-sm font-medium mb-2" style={{color: '#FF2D5B'}}>
+          <label className="block text-sm font-medium mb-2" style={{color: '#3B82F6'}}>
             Telefone
           </label>
           <input
@@ -108,16 +106,15 @@ function AddCliente({ onAddCliente }) {
             type="tel"
             placeholder="(11) 99999-9999"
             className="w-full px-4 py-3 rounded-xl text-white focus:outline-none focus:ring-2 focus:border-transparent transition-all"
-            style={{backgroundColor: '#0D0630', border: '1px solid #FF2D5B', color: '#FFFFFF'}}
-            onFocus={(e) => e.target.style.borderColor = '#FF6B8A'}
-            onBlur={(e) => e.target.style.borderColor = '#FF2D5B'}
-            placeholder="(11) 99999-9999"
+            style={{backgroundColor: '#1e293b', border: '1px solid #3B82F6', color: '#FFFFFF'}}
+            onFocus={(e) => e.target.style.borderColor = '#14B8A6'}
+            onBlur={(e) => e.target.style.borderColor = '#3B82F6'}
           />
         </div>
 
         {/* Valor */}
         <div>
-          <label className="block text-sm font-medium mb-2" style={{color: '#FF2D5B'}}>
+          <label className="block text-sm font-medium mb-2" style={{color: '#3B82F6'}}>
             Valor *
           </label>
           <input
@@ -127,16 +124,15 @@ function AddCliente({ onAddCliente }) {
             step="0.01"
             placeholder="0.00"
             className="w-full px-4 py-3 rounded-xl text-white focus:outline-none focus:ring-2 focus:border-transparent transition-all"
-            style={{backgroundColor: '#0D0630', border: '1px solid #FF2D5B', color: '#FFFFFF'}}
-            onFocus={(e) => e.target.style.borderColor = '#FF6B8A'}
-            onBlur={(e) => e.target.style.borderColor = '#FF2D5B'}
-            placeholder="0.00"
+            style={{backgroundColor: '#1e293b', border: '1px solid #3B82F6', color: '#FFFFFF'}}
+            onFocus={(e) => e.target.style.borderColor = '#14B8A6'}
+            onBlur={(e) => e.target.style.borderColor = '#3B82F6'}
           />
         </div>
 
         {/* Produto */}
         <div>
-          <label className="block text-sm font-medium mb-2" style={{color: '#FF2D5B'}}>
+          <label className="block text-sm font-medium mb-2" style={{color: '#3B82F6'}}>
             Produto *
           </label>
           <input
@@ -145,55 +141,54 @@ function AddCliente({ onAddCliente }) {
             type="text"
             placeholder="Nome do produto"
             className="w-full px-4 py-3 rounded-xl text-white focus:outline-none focus:ring-2 focus:border-transparent transition-all"
-            style={{backgroundColor: '#0D0630', border: '1px solid #FF2D5B', color: '#FFFFFF'}}
-            onFocus={(e) => e.target.style.borderColor = '#FF6B8A'}
-            onBlur={(e) => e.target.style.borderColor = '#FF2D5B'}
-            placeholder="Nome do produto"
+            style={{backgroundColor: '#1e293b', border: '1px solid #3B82F6', color: '#FFFFFF'}}
+            onFocus={(e) => e.target.style.borderColor = '#14B8A6'}
+            onBlur={(e) => e.target.style.borderColor = '#3B82F6'}
           />
         </div>
 
         {/* Versão */}
         <div>
-          <label className="block text-sm font-medium mb-2" style={{color: '#FF2D5B'}}>
+          <label className="block text-sm font-medium mb-2" style={{color: '#3B82F6'}}>
             Versão
           </label>
           <select
             value={versao}
             onChange={(e) => setVersao(e.target.value)}
             className="w-full px-4 py-3 rounded-xl text-white focus:outline-none focus:ring-2 focus:border-transparent transition-all"
-            style={{backgroundColor: '#0D0630', border: '1px solid #FF2D5B', color: '#FFFFFF'}}
-            onFocus={(e) => e.target.style.borderColor = '#FF6B8A'}
-            onBlur={(e) => e.target.style.borderColor = '#FF2D5B'}
+            style={{backgroundColor: '#1e293b', border: '1px solid #3B82F6', color: '#FFFFFF'}}
+            onFocus={(e) => e.target.style.borderColor = '#14B8A6'}
+            onBlur={(e) => e.target.style.borderColor = '#3B82F6'}
           >
-            <option value="fan" style={{backgroundColor: '#0D0630', color: '#FFFFFF'}}>Fan</option>
-            <option value="retro" style={{backgroundColor: '#0D0630', color: '#FFFFFF'}}>Retro</option>
-            <option value="player" style={{backgroundColor: '#0D0630', color: '#FFFFFF'}}>Player</option>
+            <option value="fan" style={{backgroundColor: '#1e293b', color: '#FFFFFF'}}>Fan</option>
+            <option value="retro" style={{backgroundColor: '#1e293b', color: '#FFFFFF'}}>Retro</option>
+            <option value="player" style={{backgroundColor: '#1e293b', color: '#FFFFFF'}}>Player</option>
           </select>
         </div>
 
         {/* Tamanho */}
         <div>
-          <label className="block text-sm font-medium mb-2" style={{color: '#FF2D5B'}}>
+          <label className="block text-sm font-medium mb-2" style={{color: '#3B82F6'}}>
             Tamanho
           </label>
           <select
             value={tamanho}
             onChange={(e) => setTamanho(e.target.value)}
             className="w-full px-4 py-3 rounded-xl text-white focus:outline-none focus:ring-2 focus:border-transparent transition-all"
-            style={{backgroundColor: '#0D0630', border: '1px solid #FF2D5B', color: '#FFFFFF'}}
-            onFocus={(e) => e.target.style.borderColor = '#FF6B8A'}
-            onBlur={(e) => e.target.style.borderColor = '#FF2D5B'}
+            style={{backgroundColor: '#1e293b', border: '1px solid #3B82F6', color: '#FFFFFF'}}
+            onFocus={(e) => e.target.style.borderColor = '#14B8A6'}
+            onBlur={(e) => e.target.style.borderColor = '#3B82F6'}
           >
-            <option value="" style={{backgroundColor: '#0D0630', color: '#FFFFFF'}}>Selecione o tamanho</option>
+            <option value="" style={{backgroundColor: '#1e293b', color: '#FFFFFF'}}>Selecione o tamanho</option>
             {tamanhos.map((t) => (
-              <option key={t} value={t} style={{backgroundColor: '#0D0630', color: '#FFFFFF'}}>{t}</option>
+              <option key={t} value={t} style={{backgroundColor: '#1e293b', color: '#FFFFFF'}}>{t}</option>
             ))}
           </select>
         </div>
 
         {/* Nome na Camisa */}
         <div>
-          <label className="block text-sm font-medium mb-2" style={{color: '#FF2D5B'}}>
+          <label className="block text-sm font-medium mb-2" style={{color: '#3B82F6'}}>
             Nome na Camisa (opcional)
           </label>
           <input
@@ -202,16 +197,15 @@ function AddCliente({ onAddCliente }) {
             type="text"
             placeholder="Ex: AB"
             className="w-full px-4 py-3 rounded-xl text-white focus:outline-none focus:ring-2 focus:border-transparent transition-all"
-            style={{backgroundColor: '#0D0630', border: '1px solid #FF2D5B', color: '#FFFFFF'}}
-            onFocus={(e) => e.target.style.borderColor = '#FF6B8A'}
-            onBlur={(e) => e.target.style.borderColor = '#FF2D5B'}
-            placeholder="Ex: AB"
+            style={{backgroundColor: '#1e293b', border: '1px solid #3B82F6', color: '#FFFFFF'}}
+            onFocus={(e) => e.target.style.borderColor = '#14B8A6'}
+            onBlur={(e) => e.target.style.borderColor = '#3B82F6'}
           />
         </div>
 
         {/* Número na Camisa */}
         <div>
-          <label className="block text-sm font-medium mb-2" style={{color: '#FF2D5B'}}>
+          <label className="block text-sm font-medium mb-2" style={{color: '#3B82F6'}}>
             Número na Camisa (opcional)
           </label>
           <input
@@ -220,10 +214,9 @@ function AddCliente({ onAddCliente }) {
             type="text"
             placeholder="Ex: 10"
             className="w-full px-4 py-3 rounded-xl text-white focus:outline-none focus:ring-2 focus:border-transparent transition-all"
-            style={{backgroundColor: '#0D0630', border: '1px solid #FF2D5B', color: '#FFFFFF'}}
-            onFocus={(e) => e.target.style.borderColor = '#FF6B8A'}
-            onBlur={(e) => e.target.style.borderColor = '#FF2D5B'}
-            placeholder="Ex: 10"
+            style={{backgroundColor: '#1e293b', border: '1px solid #3B82F6', color: '#FFFFFF'}}
+            onFocus={(e) => e.target.style.borderColor = '#14B8A6'}
+            onBlur={(e) => e.target.style.borderColor = '#3B82F6'}
           />
         </div>
 
@@ -241,18 +234,18 @@ function AddCliente({ onAddCliente }) {
               : "shadow-lg hover:shadow-xl"
           }`}
           style={{
-            backgroundColor: loading ? '#0D0630' : '#FF2D5B',
+            backgroundColor: loading ? '#0D0630' : '#3B82F6',
             color: '#FFFFFF',
-            border: '1px solid #FF2D5B'
+            border: '1px solid #3B82F6'
           }}
           onMouseEnter={(e) => {
             if (!loading) {
-              e.target.style.backgroundColor = '#FF6B8A';
+              e.target.style.backgroundColor = '#14B8A6';
             }
           }}
           onMouseLeave={(e) => {
             if (!loading) {
-              e.target.style.backgroundColor = '#FF2D5B';
+              e.target.style.backgroundColor = '#3B82F6';
             }
           }}
         >
