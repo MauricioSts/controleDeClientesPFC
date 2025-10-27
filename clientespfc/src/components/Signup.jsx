@@ -51,7 +51,25 @@ function Signup({ onToggleMode }) {
       toast.success("Conta criada com sucesso!");
     } catch (error) {
       console.error("Erro no cadastro com Google:", error);
-      toast.error("Erro ao criar conta com Google");
+      
+      // Mensagens específicas de erro
+      let errorMessage = "Erro ao criar conta com Google";
+      
+      if (error.code === 'auth/popup-closed-by-user') {
+        errorMessage = "Popup foi fechado. Tente novamente.";
+      } else if (error.code === 'auth/popup-blocked') {
+        errorMessage = "Popup bloqueado. Permita popups no navegador.";
+      } else if (error.code === 'auth/unauthorized-domain') {
+        errorMessage = "Domínio não autorizado. Configure no Firebase Console.";
+      } else if (error.code === 'auth/invalid-credential') {
+        errorMessage = "Credenciais inválidas.";
+      } else if (error.code) {
+        errorMessage = `Erro: ${error.code}`;
+      }
+      
+      toast.error(errorMessage);
+      console.error("Código do erro:", error.code);
+      console.error("Mensagem:", error.message);
     } finally {
       setLoading(false);
     }
