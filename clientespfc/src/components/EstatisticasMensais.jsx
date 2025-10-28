@@ -120,11 +120,11 @@ function EstatisticasMensais({ clientes }) {
                   </span>
                 </div>
 
-                {/* Lucro Líquido */}
+                {/* Lucro Bruto */}
                 <div className="flex items-center justify-between p-3 rounded-xl" style={{backgroundColor: 'rgba(20, 184, 166, 0.1)'}}>
                   <div className="flex items-center gap-2">
                     <DollarSign className="w-5 h-5" style={{color: '#14B8A6'}} />
-                    <span style={{color: '#FFFFFF'}}>Lucro Líquido</span>
+                    <span style={{color: '#FFFFFF'}}>Lucro Bruto</span>
                   </div>
                   <span className="text-xl font-bold" style={{color: '#14B8A6'}}>
                     R$ {mesData.total.toFixed(2)}
