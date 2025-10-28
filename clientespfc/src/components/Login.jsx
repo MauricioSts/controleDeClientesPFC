@@ -72,7 +72,7 @@ function Login({ onToggleMode }) {
         <h2 className="text-3xl font-bold mb-2" style={{ color: "#3B82F6" }}>
           Bem-vindo de volta!
         </h2>
-        <p style={{ color: "#FFFFFF" }}>Faça login para acessar JerseysAndBits</p>
+        <p style={{ color: "#FFFFFF" }}>Faça login para acessar JerseyAndBits</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">

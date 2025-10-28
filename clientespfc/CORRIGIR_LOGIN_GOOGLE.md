@@ -101,3 +101,4 @@ Se o Google não funcionar, você pode:
 
 Me diga qual mensagem de erro aparece quando você clica em "Entrar com Google" para eu ajudar melhor!
 
+

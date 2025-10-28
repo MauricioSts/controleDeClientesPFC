@@ -184,7 +184,7 @@ function AuthenticatedApp({ isAdmin, onShowAdmin }) {
                 backgroundClip: 'text'
               }}
             >
-              JerseysAndBits
+              JerseyAndBits
             </h1>
             <p className="text-xl" style={{color: '#FFFFFF'}}>Sistema de Gestão de Pedidos</p>
           </div>

@@ -1,4 +1,4 @@
-# Sistema de Pedidos - Multi-Tenant SaaS
+# JerseyAndBits - Sistema de Pedidos Multi-Tenant SaaS
 
 Sistema de gestão de pedidos P.F.C com suporte a múltiplos usuários. Cada usuário tem acesso isolado e independente aos seus próprios pedidos.
 
@@ -25,8 +25,8 @@ Sistema de gestão de pedidos P.F.C com suporte a múltiplos usuários. Cada usu
 
 1. Clone o repositório:
 ```bash
-git clone https://github.com/MauricioSts/clientespfc
-cd clientespfc
+git clone https://github.com/MauricioSts/jerseyandbits
+cd jerseyandbits
 ```
 
 2. Instale as dependências:

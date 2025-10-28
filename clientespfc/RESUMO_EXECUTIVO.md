@@ -4,7 +4,7 @@
 
 ```bash
 # 1. Terminal
-cd C:\Users\mauri\controleDeClientesPFC\clientespfc
+cd C:\Users\mauri\controleDeClientesPFC\jerseyandbits
 
 # 2. Login Firebase
 firebase login

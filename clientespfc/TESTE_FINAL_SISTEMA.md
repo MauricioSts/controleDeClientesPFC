@@ -108,3 +108,4 @@ Após todos os testes, você deve ter:
 - Usuários viram PRO após aprovação
 - Sistema totalmente funcional
 
+

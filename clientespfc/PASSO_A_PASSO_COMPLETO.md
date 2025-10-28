@@ -26,7 +26,7 @@ Este guia vai te levar desde o início até ter um sistema 100% funcional com pa
 ### 1.1 Abrir Terminal e Navegar até a Pasta
 
 ```bash
-cd C:\Users\mauri\controleDeClientesPFC\clientespfc
+cd C:\Users\mauri\controleDeClientesPFC\jerseyandbits
 ```
 
 ### 1.2 Verificar se está tudo instalado
