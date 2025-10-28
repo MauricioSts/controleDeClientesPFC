@@ -209,7 +209,7 @@ function ViewClientes() {
       {abaAtiva === 'estatisticas' ? (
         <EstatisticasMensais clientes={clientesFiltrados} />
       ) : (
-        <>
+        <div>
       {/* Lista de Pedidos */}
       {clientesFiltrados.length === 0 ? (
         <div className="text-center py-12">
@@ -470,7 +470,7 @@ function ViewClientes() {
               </div>
           ))}
         </div>
-        </>
+        </div>
       )}
 
       {/* Modal de detalhes */}
