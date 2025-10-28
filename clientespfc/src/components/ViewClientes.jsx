@@ -470,7 +470,8 @@ function ViewClientes() {
               </div>
           ))}
         </div>
-        </div>
+        )}
+      </div>
       )}
 
       {/* Modal de detalhes */}
