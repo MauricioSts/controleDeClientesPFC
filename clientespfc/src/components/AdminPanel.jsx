@@ -276,7 +276,7 @@ function AdminPanel({ onBack }) {
                       <div className="flex items-center gap-2">
                         <Calendar className="w-4 h-4" style={{color: '#999'}} />
                         <span style={{color: '#999', fontSize: '14px'}}>
-                          {upgrade.pendingDate.toLocaleDateString('pt-BR')}
+                          {upgrade.pendingDate instanceof Date ? upgrade.pendingDate.toLocaleDateString('pt-BR') : upgrade.pendingDate ? new Date(upgrade.pendingDate).toLocaleDateString('pt-BR') : 'Recente'}
                         </span>
                       </div>
                     </div>
@@ -338,7 +338,7 @@ function AdminPanel({ onBack }) {
                       <div className="flex items-center gap-2">
                         <Calendar className="w-4 h-4" style={{color: '#999'}} />
                         <span style={{color: '#999', fontSize: '14px'}}>
-                          Desde {user.startDate.toLocaleDateString('pt-BR')}
+                          Desde {user.approvedDate instanceof Date ? user.approvedDate.toLocaleDateString('pt-BR') : user.approvedDate ? new Date(user.approvedDate).toLocaleDateString('pt-BR') : 'Recente'}
                         </span>
                       </div>
                     </div>
