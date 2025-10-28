@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Assinatura Confirmada! - JerseysAndBits</title>
   <script type="module">
-    // Configuração do Firebase
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js';
-    import { getFirestore, collection, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js';
+    // Importar Firebase SDK
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js';
+    import { getFirestore, collection, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js';
 
     const firebaseConfig = {
       apiKey: "AIzaSyDj7WHl4YQJ7m8j4L6RB7I7zq8c6FKzH6FY",
@@ -24,37 +24,47 @@
     // Função para criar requisição de upgrade
     async function createUpgradeRequest(email) {
       try {
-        console.log('📧 Email para upgrade:', email);
+        console.log('📧 Criando requisição de upgrade para:', email);
         
-        // Criar documento na coleção pending_upgrades
-        await addDoc(collection(db, 'pending_upgrades'), {
+        const docRef = await addDoc(collection(db, 'pending_upgrades'), {
           email: email,
           status: 'pending',
           plan: 'pro',
-          createdAt: serverTimestamp(),
-          processed: false
+          processed: false,
+          createdAt: serverTimestamp()
         });
         
-        console.log('✅ Requisição criada com sucesso!');
+        console.log('✅ Requisição criada com sucesso! ID:', docRef.id);
         
         // Mostrar mensagem de sucesso
         const container = document.querySelector('.container');
         if (container) {
-          const p = document.createElement('p');
-          p.style.color = '#14B8A6';
-          p.style.fontWeight = 'bold';
-          p.textContent = '✅ Solicitação enviada! Em breve você terá acesso PRO.';
-          container.insertBefore(p, container.querySelector('button'));
+          const successMsg = container.querySelector('.success-msg');
+          if (successMsg) {
+            successMsg.style.display = 'block';
+          }
         }
       } catch (error) {
         console.error('❌ Erro ao criar requisição:', error);
+        
+        // Mostrar mensagem de erro
+        const container = document.querySelector('.container');
+        if (container) {
+          const errorMsg = container.querySelector('.error-msg');
+          if (errorMsg) {
+            errorMsg.style.display = 'block';
+          }
+        }
       }
     }
 
     // Executar quando a página carregar
     window.addEventListener('DOMContentLoaded', async () => {
+      console.log('🔄 Página de sucesso carregada');
+      
+      // Buscar email do sessionStorage
       const userEmail = sessionStorage.getItem('pendingUpgradeEmail');
-      console.log('🔍 SessionStorage check:', userEmail);
+      console.log('🔍 Email encontrado:', userEmail);
       
       if (userEmail) {
         await createUpgradeRequest(userEmail);
@@ -62,12 +72,23 @@
       } else {
         console.warn('⚠️ Nenhum email encontrado no sessionStorage');
         
-        // Tentar pegar da URL ou prompt
+        // Tentar pegar da URL
         const urlParams = new URLSearchParams(window.location.search);
         const emailFromUrl = urlParams.get('email');
         
         if (emailFromUrl) {
+          console.log('📧 Email encontrado na URL:', emailFromUrl);
           await createUpgradeRequest(emailFromUrl);
+        } else {
+          console.warn('⚠️ Nenhum email disponível');
+          
+          const container = document.querySelector('.container');
+          if (container) {
+            const errorMsg = container.querySelector('.error-msg');
+            if (errorMsg) {
+              errorMsg.style.display = 'block';
+            }
+          }
         }
       }
     });
@@ -136,6 +157,23 @@
     button:active {
       transform: translateY(0);
     }
+    .success-msg, .error-msg {
+      display: none;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-weight: 600;
+      margin-top: 20px;
+    }
+    .success-msg {
+      background: rgba(20, 184, 166, 0.2);
+      color: #14B8A6;
+      border: 2px solid #14B8A6;
+    }
+    .error-msg {
+      background: rgba(239, 68, 68, 0.2);
+      color: #ef4444;
+      border: 2px solid #ef4444;
+    }
   </style>
 </head>
 <body>
@@ -146,6 +184,12 @@
     <p style="font-size: 0.9rem; opacity: 0.8;">
       Você agora tem acesso a todos os recursos exclusivos.
     </p>
+    <div class="success-msg">
+      ✅ Solicitação enviada! Em breve você terá acesso PRO.
+    </div>
+    <div class="error-msg">
+      ⚠️ Entre em contato com o suporte para ativar seu acesso PRO.
+    </div>
     <button onclick="window.location.href='/'">
       Voltar para o App
     </button>

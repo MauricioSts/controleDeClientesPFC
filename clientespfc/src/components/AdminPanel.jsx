@@ -24,20 +24,24 @@ function AdminPanel({ onBack }) {
     try {
       // Buscar da nova coleção pending_upgrades
       const upgradesRef = collection(db, "pending_upgrades");
-      const q = query(upgradesRef, where("processed", "==", false), orderBy("createdAt", "desc"));
+      const q = query(upgradesRef, where("processed", "==", false));
       
       const snapshot = await getDocs(q);
       const upgrades = [];
       
       snapshot.forEach((doc) => {
         const data = doc.data();
+        const createdAt = data.createdAt?.toDate ? data.createdAt.toDate() : data.createdAt;
         upgrades.push({
           id: doc.id,
           email: data.email || "Email não disponível",
-          pendingDate: data.createdAt?.toDate() || new Date(),
+          pendingDate: createdAt || new Date(),
           ...data
         });
       });
+      
+      // Ordenar por data (mais recente primeiro)
+      upgrades.sort((a, b) => new Date(b.pendingDate) - new Date(a.pendingDate));
       
       setPendingUpgrades(upgrades);
     } catch (error) {
