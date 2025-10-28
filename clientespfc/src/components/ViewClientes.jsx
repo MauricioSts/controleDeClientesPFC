@@ -204,7 +204,6 @@ function ViewClientes() {
           <div style={{color: '#FFFFFF'}}>Valor Total</div>
         </div>
       </div>
-      )}
 
       {/* Conteúdo baseado na aba ativa */}
       {abaAtiva === 'estatisticas' ? (
@@ -471,7 +470,7 @@ function ViewClientes() {
               </div>
           ))}
         </div>
-      </>
+        </>
       )}
 
       {/* Modal de detalhes */}
