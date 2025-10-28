@@ -4,11 +4,16 @@ import admin from 'firebase-admin';
 // Inicializar Firebase Admin apenas uma vez
 if (!admin.apps.length) {
   try {
+    // Obter Service Account da variável de ambiente
+    const serviceAccount = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS);
+    
     admin.initializeApp({
-      credential: admin.credential.applicationDefault()
+      credential: admin.credential.cert(serviceAccount)
     });
+    
+    console.log('✅ Firebase Admin initialized');
   } catch (error) {
-    console.error('Firebase Admin initialization error', error);
+    console.error('❌ Firebase Admin initialization error:', error);
   }
 }
 
