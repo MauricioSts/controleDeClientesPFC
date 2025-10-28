@@ -4,9 +4,11 @@ import { db } from "../firebase/config";
 import { toast } from "react-hot-toast";
 import { motion } from "framer-motion";
 import { X, Save, Trash2, Edit3 } from "lucide-react";
+import ConfirmModal from "./ConfirmModal";
 
 function ClienteDetalhes({ cliente, onClose }) {
   const [isEditing, setIsEditing] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [editedCliente, setEditedCliente] = useState({
     nome: cliente.nome || "",
     instagram: cliente.instagram || "",
@@ -34,15 +36,17 @@ function ClienteDetalhes({ cliente, onClose }) {
   };
 
   const handleDelete = async () => {
-    if (window.confirm("Tem certeza que deseja excluir este cliente?")) {
-      try {
-        await deleteDoc(doc(db, "clientes", cliente.id));
-        toast.success("Cliente excluído com sucesso!");
-        onClose();
-      } catch (error) {
-        console.error("Erro ao excluir cliente:", error);
-        toast.error("Erro ao excluir cliente");
-      }
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await deleteDoc(doc(db, "clientes", cliente.id));
+      toast.success("Cliente excluído com sucesso!");
+      onClose();
+    } catch (error) {
+      console.error("Erro ao excluir cliente:", error);
+      toast.error("Erro ao excluir cliente");
     }
   };
 
@@ -292,6 +296,17 @@ function ClienteDetalhes({ cliente, onClose }) {
           )}
         </div>
       </motion.div>
+
+      {/* Modal de confirmação de exclusão */}
+      <ConfirmModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={confirmDelete}
+        title="Confirmar Exclusão"
+        message="Tem certeza que deseja excluir este cliente?"
+        confirmText="Excluir"
+        cancelText="Cancelar"
+      />
     </motion.div>
   );
 }

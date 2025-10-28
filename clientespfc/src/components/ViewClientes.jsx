@@ -14,6 +14,7 @@ import { toast } from "react-hot-toast";
 import { Eye, Edit3, Save, X, CheckCircle, Circle, Trash2, List, BarChart3 } from "lucide-react";
 import ClienteDetalhes from "./ClienteDetalhes";
 import EstatisticasMensais from "./EstatisticasMensais";
+import ConfirmModal from "./ConfirmModal";
 
 function ViewClientes() {
   const { currentUser } = useAuth();
@@ -22,6 +23,8 @@ function ViewClientes() {
   const [editingCliente, setEditingCliente] = useState(null);
   const [editData, setEditData] = useState({});
   const [abaAtiva, setAbaAtiva] = useState('lista'); // 'lista' ou 'estatisticas'
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [clienteToDelete, setClienteToDelete] = useState(null);
 
   useEffect(() => {
     if (!currentUser) return;
@@ -110,17 +113,25 @@ function ViewClientes() {
   }, [editData]);
 
   const handleDelete = useCallback(async (cliente) => {
-    if (window.confirm(`Tem certeza que deseja excluir o pedido de ${cliente.nome}?`)) {
-      try {
-        const ref = doc(db, "clientes", cliente.id);
-        await deleteDoc(ref);
-        toast.success("Pedido excluído com sucesso!");
-      } catch (error) {
-        console.error("Erro ao excluir pedido:", error);
-        toast.error("Erro ao excluir pedido");
-      }
-    }
+    setClienteToDelete(cliente);
+    setShowDeleteModal(true);
   }, []);
+
+  const confirmDelete = useCallback(async () => {
+    if (!clienteToDelete) return;
+    
+    try {
+      const ref = doc(db, "clientes", clienteToDelete.id);
+      await deleteDoc(ref);
+      toast.success("Pedido excluído com sucesso!");
+    } catch (error) {
+      console.error("Erro ao excluir pedido:", error);
+      toast.error("Erro ao excluir pedido");
+    } finally {
+      setShowDeleteModal(false);
+      setClienteToDelete(null);
+    }
+  }, [clienteToDelete]);
 
   // Filtrar clientes por aba ativa
   const clientesFiltrados = useMemo(() => clientes, [clientes]);
@@ -481,6 +492,20 @@ function ViewClientes() {
           onClose={() => setSelectedCliente(null)}
         />
       )}
+
+      {/* Modal de confirmação de exclusão */}
+      <ConfirmModal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setClienteToDelete(null);
+        }}
+        onConfirm={confirmDelete}
+        title="Confirmar Exclusão"
+        message={`Tem certeza que deseja excluir o pedido de ${clienteToDelete?.nome}?`}
+        confirmText="Excluir"
+        cancelText="Cancelar"
+      />
     </div>
   );
 }
