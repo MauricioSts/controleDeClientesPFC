@@ -53,10 +53,10 @@ function AddCliente({ onAddCliente }) {
     <div className="backdrop-blur-sm rounded-2xl p-8 shadow-2xl" style={{backgroundColor: '#1e293b', border: '1px solid #3B82F6'}}>
       <div className="text-center mb-8">
         <h2 className="text-3xl font-bold mb-2" style={{color: '#3B82F6'}}>
-          Adicionar Pedido
+          Adicionar Cliente
         </h2>
         <p style={{color: '#FFFFFF'}}>
-          Sistema de Administração de Pedidos
+          Cadastre um novo cliente com todas as informações
         </p>
       </div>
 

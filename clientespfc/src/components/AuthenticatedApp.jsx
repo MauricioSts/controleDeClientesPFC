@@ -9,17 +9,25 @@ import {
   updateDoc,
   doc,
   serverTimestamp,
+  query,
+  where,
+  onSnapshot,
 } from "firebase/firestore";
 import { Toaster, toast } from "react-hot-toast";
 import { LogOut, Lock } from "lucide-react";
 
 import AddCliente from "./AddCliente";
 import ViewClientes from "./ViewClientes";
+import ClientsManager from "./ClientsManager";
+import OrdersManager from "./OrdersManager";
+import EstatisticasMensais from "./EstatisticasMensais";
 
 function AuthenticatedApp({ isAdmin, onShowAdmin }) {
   const { currentUser, logout } = useAuth();
   const [approved, setApproved] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("pedidos-legado"); // "pedidos-legado", "pedidos-novo", "clientes" ou "estatisticas"
+  const [clientes, setClientes] = useState([]);
 
   // Verificar se usuário está aprovado
   useEffect(() => {
@@ -73,6 +81,37 @@ function AuthenticatedApp({ isAdmin, onShowAdmin }) {
     checkUserApproval();
   }, [currentUser]);
 
+  // Buscar clientes para estatísticas
+  useEffect(() => {
+    if (!currentUser || !approved) return;
+
+    const q = query(
+      collection(db, "clientes"),
+      where("userId", "==", currentUser.uid)
+    );
+    
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const lista = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      
+      // Filtrar apenas clientes (não incluir pedidos com rastreio)
+      const clientesFiltrados = lista.filter(item => {
+        // Se tem tipo "pedido", é um pedido com rastreio e NÃO deve aparecer
+        if (item.tipo === "pedido") {
+          return false;
+        }
+        // Todos os outros são clientes
+        return true;
+      });
+      
+      setClientes(clientesFiltrados);
+    });
+
+    return () => unsubscribe();
+  }, [currentUser, approved]);
+
   const handleAddCliente = async (cliente) => {
     const { nome, instagram, numero, produto, tamanho, valor, versao, numeroCamisa, nomeCamisa } = cliente;
 
@@ -81,11 +120,11 @@ function AuthenticatedApp({ isAdmin, onShowAdmin }) {
       return;
     }
 
-    const numeroTel = parseFloat(numero);
+    const numeroTel = numero || "";
     const preco = parseFloat(valor);
 
-    if (isNaN(numeroTel) || isNaN(preco)) {
-      toast.error("Número ou valor inválido!");
+    if (isNaN(preco)) {
+      toast.error("Valor inválido!");
       return;
     }
 
@@ -95,7 +134,7 @@ function AuthenticatedApp({ isAdmin, onShowAdmin }) {
         instagram,
         numeroTel,
         produto,
-        tamanho,
+        tamanho: tamanho || "",
         preco,
         versao: versao || "fan",
         numeroCamisa: numeroCamisa || "",
@@ -104,13 +143,14 @@ function AuthenticatedApp({ isAdmin, onShowAdmin }) {
         createdAt: serverTimestamp(),
         concluido: false,
         pedidoFeito: false,
+        isCustomer: true, // Marca como cliente
         userId: currentUser.uid,
       });
 
-      toast.success("Pedido adicionado com sucesso!");
+      toast.success("Cliente adicionado com sucesso!");
     } catch (error) {
-      console.error("Erro ao adicionar pedido:", error);
-      toast.error("Erro ao salvar pedido 😢");
+      console.error("Erro ao adicionar cliente:", error);
+      toast.error("Erro ao salvar cliente 😢");
     }
   };
 
@@ -221,21 +261,74 @@ function AuthenticatedApp({ isAdmin, onShowAdmin }) {
           </div>
         </div>
 
-        {/* Formulário */}
+        {/* Abas de Navegação */}
         <div className="mb-8">
-          <AddCliente onAddCliente={handleAddCliente} />
+          <div className="flex gap-4 justify-center flex-wrap">
+            <button
+              onClick={() => setActiveTab("pedidos-legado")}
+              className={`px-6 py-3 rounded-xl font-medium transition-all ${
+                activeTab === "pedidos-legado" 
+                  ? "bg-blue-600 text-white" 
+                  : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+              }`}
+            >
+              👥 Clientes/Adicionar
+            </button>
+            <button
+              onClick={() => setActiveTab("pedidos-novo")}
+              className={`px-6 py-3 rounded-xl font-medium transition-all ${
+                activeTab === "pedidos-novo" 
+                  ? "bg-blue-600 text-white" 
+                  : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+              }`}
+            >
+              🚚 Pedidos com Rastreio
+            </button>
+            <button
+              onClick={() => setActiveTab("estatisticas")}
+              className={`px-6 py-3 rounded-xl font-medium transition-all ${
+                activeTab === "estatisticas" 
+                  ? "bg-blue-600 text-white" 
+                  : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+              }`}
+            >
+              📊 Estatísticas
+            </button>
+          </div>
         </div>
 
-        {/* Lista de Pedidos */}
-        <div className="mb-8">
-          <div className="text-center mb-6">
-            <h2 className="text-2xl font-bold mb-2" style={{color: '#3B82F6'}}>
-              Lista de Pedidos
-            </h2>
-            <p style={{color: '#FFFFFF'}}>Gerencie seus pedidos de forma eficiente</p>
+        {/* Conteúdo das Abas */}
+        {activeTab === "pedidos-legado" && (
+          <div className="space-y-8">
+            {/* Formulário de Adicionar Cliente */}
+            <div className="mb-8">
+              <AddCliente onAddCliente={handleAddCliente} />
+            </div>
+
+            {/* Lista de Clientes */}
+            <div className="mb-8">
+              <div className="text-center mb-6">
+                <h2 className="text-2xl font-bold mb-2" style={{color: '#3B82F6'}}>
+                  Lista de Clientes
+                </h2>
+                <p style={{color: '#FFFFFF'}}>Gerencie seus clientes de forma eficiente</p>
+              </div>
+              <ViewClientes />
+            </div>
           </div>
-          <ViewClientes />
-        </div>
+        )}
+
+        {activeTab === "pedidos-novo" && (
+          <div className="mb-8">
+            <OrdersManager />
+          </div>
+        )}
+
+        {activeTab === "estatisticas" && (
+          <div className="mb-8">
+            <EstatisticasMensais clientes={clientes} />
+          </div>
+        )}
 
       </div>
 

@@ -3,7 +3,8 @@ import { db } from "../firebase/config";
 import { collection, query, where, getDocs, doc, updateDoc, deleteDoc, setDoc, orderBy, limit, serverTimestamp } from "firebase/firestore";
 import { useAuth } from "../contexts/AuthContext";
 import { toast } from "react-hot-toast";
-import { Check, X, AlertCircle, User, Mail, Calendar, DollarSign, LogOut } from "lucide-react";
+import { Check, X, AlertCircle, User, Mail, Calendar, DollarSign, LogOut, Trash2, Users, TrendingUp, CheckCircle2, Clock } from "lucide-react";
+import ConfirmModal from "./ConfirmModal";
 
 const ADMIN_EMAIL = "mauriciogear4@gmail.com";
 
@@ -12,11 +13,15 @@ function AdminPanel({ onBack }) {
   const [pendingUpgrades, setPendingUpgrades] = useState([]);
   const [proUsers, setProUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
+  const [userStats, setUserStats] = useState({});
 
   useEffect(() => {
     if (currentUser && currentUser.email === ADMIN_EMAIL) {
       fetchPendingUpgrades();
       fetchProUsers();
+      fetchUserStats();
     }
   }, [currentUser]);
 
@@ -99,6 +104,62 @@ function AdminPanel({ onBack }) {
     }
   };
 
+  const fetchUserStats = async () => {
+    try {
+      // Buscar todos os usuários aprovados
+      const usersRef = collection(db, "users");
+      const q = query(usersRef, where("approved", "==", true));
+      const usersSnapshot = await getDocs(q);
+      
+      const stats = {};
+      
+      // Para cada usuário, contar seus clientes
+      for (const userDoc of usersSnapshot.docs) {
+        const userData = userDoc.data();
+        
+        // Filtrar admin
+        if (userData.email === 'mauriciogear4@gmail.com') {
+          continue;
+        }
+        
+        const clientesRef = collection(db, "clientes");
+        const clientesQuery = query(clientesRef, where("userId", "==", userDoc.id));
+        const clientesSnapshot = await getDocs(clientesQuery);
+        
+        // Calcular estatísticas
+        let totalClientes = 0;
+        let clientesConcluidos = 0;
+        let clientesPendentes = 0;
+        let valorTotal = 0;
+        
+        clientesSnapshot.forEach((clienteDoc) => {
+          const clienteData = clienteDoc.data();
+          totalClientes++;
+          
+          if (clienteData.concluido) {
+            clientesConcluidos++;
+          } else {
+            clientesPendentes++;
+          }
+          
+          valorTotal += clienteData.preco || 0;
+        });
+        
+        stats[userDoc.id] = {
+          email: userData.email,
+          totalClientes,
+          clientesConcluidos,
+          clientesPendentes,
+          valorTotal: valorTotal.toFixed(2)
+        };
+      }
+      
+      setUserStats(stats);
+    } catch (error) {
+      console.error("Erro ao buscar estatísticas dos usuários:", error);
+    }
+  };
+
   const approveUpgrade = async (userId, userEmail, userUid) => {
     try {
       // Atualizar usuário para aprovado
@@ -111,6 +172,7 @@ function AdminPanel({ onBack }) {
       toast.success(`✅ Usuário aprovado: ${userEmail}`);
       fetchPendingUpgrades();
       fetchProUsers();
+      fetchUserStats();
     } catch (error) {
       console.error("Erro ao aprovar usuário:", error);
       toast.error("Erro ao aprovar usuário");
@@ -127,6 +189,30 @@ function AdminPanel({ onBack }) {
     } catch (error) {
       console.error("Erro ao rejeitar usuário:", error);
       toast.error("Erro ao rejeitar usuário");
+    }
+  };
+
+  const handleRemoveUser = (user) => {
+    setUserToDelete(user);
+    setShowDeleteModal(true);
+  };
+
+  const confirmRemoveUser = async () => {
+    if (!userToDelete) return;
+    
+    try {
+      // Deletar usuário aprovado
+      await deleteDoc(doc(db, "users", userToDelete.id));
+
+      toast.success(`🗑️ Usuário removido: ${userToDelete.email}`);
+      fetchProUsers();
+      fetchUserStats();
+    } catch (error) {
+      console.error("Erro ao remover usuário:", error);
+      toast.error("Erro ao remover usuário");
+    } finally {
+      setShowDeleteModal(false);
+      setUserToDelete(null);
     }
   };
 
@@ -326,6 +412,85 @@ function AdminPanel({ onBack }) {
           </div>
         )}
 
+        {/* Estatísticas Detalhadas dos Usuários */}
+        {Object.keys(userStats).length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold mb-4" style={{color: '#14B8A6'}}>
+              📊 Estatísticas por Usuário
+            </h2>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {Object.entries(userStats).map(([userId, stats]) => (
+                <div
+                  key={userId}
+                  className="p-6 rounded-xl"
+                  style={{
+                    backgroundColor: '#1e293b',
+                    border: '2px solid #14B8A6'
+                  }}
+                >
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="p-3 rounded-xl" style={{backgroundColor: '#14B8A6'}}>
+                      <Users className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold" style={{color: '#14B8A6'}}>
+                        {stats.email}
+                      </h3>
+                      <p style={{color: '#FFFFFF'}}>Estatísticas de Clientes</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    {/* Total de Clientes */}
+                    <div className="p-3 rounded-lg" style={{backgroundColor: 'rgba(59, 130, 246, 0.1)'}}>
+                      <div className="flex items-center gap-2 mb-1">
+                        <User className="w-4 h-4" style={{color: '#3B82F6'}} />
+                        <span className="text-sm font-medium" style={{color: '#FFFFFF'}}>Total</span>
+                      </div>
+                      <div className="text-2xl font-bold" style={{color: '#3B82F6'}}>
+                        {stats.totalClientes}
+                      </div>
+                    </div>
+
+                    {/* Clientes Concluídos */}
+                    <div className="p-3 rounded-lg" style={{backgroundColor: 'rgba(16, 185, 129, 0.1)'}}>
+                      <div className="flex items-center gap-2 mb-1">
+                        <CheckCircle2 className="w-4 h-4" style={{color: '#10B981'}} />
+                        <span className="text-sm font-medium" style={{color: '#FFFFFF'}}>Concluídos</span>
+                      </div>
+                      <div className="text-2xl font-bold" style={{color: '#10B981'}}>
+                        {stats.clientesConcluidos}
+                      </div>
+                    </div>
+
+                    {/* Clientes Pendentes */}
+                    <div className="p-3 rounded-lg" style={{backgroundColor: 'rgba(245, 158, 11, 0.1)'}}>
+                      <div className="flex items-center gap-2 mb-1">
+                        <Clock className="w-4 h-4" style={{color: '#F59E0B'}} />
+                        <span className="text-sm font-medium" style={{color: '#FFFFFF'}}>Pendentes</span>
+                      </div>
+                      <div className="text-2xl font-bold" style={{color: '#F59E0B'}}>
+                        {stats.clientesPendentes}
+                      </div>
+                    </div>
+
+                    {/* Valor Total */}
+                    <div className="p-3 rounded-lg" style={{backgroundColor: 'rgba(20, 184, 166, 0.1)'}}>
+                      <div className="flex items-center gap-2 mb-1">
+                        <DollarSign className="w-4 h-4" style={{color: '#14B8A6'}} />
+                        <span className="text-sm font-medium" style={{color: '#FFFFFF'}}>Valor Total</span>
+                      </div>
+                      <div className="text-2xl font-bold" style={{color: '#14B8A6'}}>
+                        R$ {stats.valorTotal}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Usuários PRO */}
         <div>
           <h2 className="text-2xl font-bold mb-4" style={{color: '#3B82F6'}}>
@@ -372,12 +537,36 @@ function AdminPanel({ onBack }) {
                         </span>
                       </div>
                     </div>
-                    <span className="px-3 py-1 rounded-lg font-bold text-sm" style={{
-                      backgroundColor: '#3B82F6',
-                      color: '#FFFFFF'
-                    }}>
-                      PRO
-                    </span>
+                    <div className="flex items-center gap-3">
+                      {/* Estatísticas do usuário */}
+                      {userStats[user.id] && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <span style={{color: '#999'}}>
+                            {userStats[user.id].totalClientes} clientes
+                          </span>
+                          <span style={{color: '#14B8A6'}}>
+                            R$ {userStats[user.id].valorTotal}
+                          </span>
+                        </div>
+                      )}
+                      
+                      <span className="px-3 py-1 rounded-lg font-bold text-sm" style={{
+                        backgroundColor: '#3B82F6',
+                        color: '#FFFFFF'
+                      }}>
+                        PRO
+                      </span>
+                      <button
+                        onClick={() => handleRemoveUser(user)}
+                        className="p-2 rounded-lg transition-all flex items-center gap-2"
+                        style={{ backgroundColor: '#ef4444', color: '#FFFFFF' }}
+                        onMouseEnter={(e) => e.target.style.backgroundColor = '#dc2626'}
+                        onMouseLeave={(e) => e.target.style.backgroundColor = '#ef4444'}
+                        title="Remover usuário"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))
@@ -385,6 +574,20 @@ function AdminPanel({ onBack }) {
           </div>
         </div>
       </div>
+
+      {/* Modal de confirmação de remoção de usuário */}
+      <ConfirmModal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setUserToDelete(null);
+        }}
+        onConfirm={confirmRemoveUser}
+        title="Remover Usuário"
+        message={`Tem certeza que deseja remover o usuário ${userToDelete?.email}? Esta ação não pode ser desfeita.`}
+        confirmText="Remover"
+        cancelText="Cancelar"
+      />
     </div>
   );
 }

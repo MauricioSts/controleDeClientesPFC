@@ -11,9 +11,8 @@ import {
 import { db } from "../firebase/config";
 import { useAuth } from "../contexts/AuthContext";
 import { toast } from "react-hot-toast";
-import { Eye, Edit3, Save, X, CheckCircle, Circle, Trash2, List, BarChart3 } from "lucide-react";
+import { Eye, Edit3, Save, X, CheckCircle, Circle, Trash2 } from "lucide-react";
 import ClienteDetalhes from "./ClienteDetalhes";
-import EstatisticasMensais from "./EstatisticasMensais";
 import ConfirmModal from "./ConfirmModal";
 
 function ViewClientes() {
@@ -22,7 +21,6 @@ function ViewClientes() {
   const [selectedCliente, setSelectedCliente] = useState(null);
   const [editingCliente, setEditingCliente] = useState(null);
   const [editData, setEditData] = useState({});
-  const [abaAtiva, setAbaAtiva] = useState('lista'); // 'lista' ou 'estatisticas'
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [clienteToDelete, setClienteToDelete] = useState(null);
 
@@ -38,8 +36,19 @@ function ViewClientes() {
         id: doc.id,
         ...doc.data(),
       }));
+      
+      // Filtrar apenas clientes (não incluir pedidos com rastreio)
+      const listaFiltrada = lista.filter(item => {
+        // Se tem tipo "pedido", é um pedido com rastreio e NÃO deve aparecer
+        if (item.tipo === "pedido") {
+          return false;
+        }
+        // Todos os outros são clientes
+        return true;
+      });
+      
       // Ordenar por createdAt descendentemente
-      const listaOrdenada = lista.sort((a, b) => {
+      const listaOrdenada = listaFiltrada.sort((a, b) => {
         if (b.createdAt && a.createdAt) {
           // Se for um timestamp do Firestore
           if (typeof b.createdAt.toMillis === 'function') {
@@ -144,53 +153,6 @@ function ViewClientes() {
 
   return (
     <div>
-      {/* Abas de Navegação */}
-      <div className="flex gap-4 mb-6">
-        <button
-          onClick={() => setAbaAtiva('lista')}
-          className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all ${
-            abaAtiva === 'lista' 
-              ? 'shadow-lg' 
-              : 'opacity-70 hover:opacity-100'
-          }`}
-          style={{
-            backgroundColor: abaAtiva === 'lista' ? '#3B82F6' : '#1e293b',
-            color: '#FFFFFF',
-            border: '1px solid #3B82F6'
-          }}
-          onMouseEnter={(e) => {
-            if (abaAtiva !== 'lista') e.target.style.backgroundColor = '#14B8A6';
-          }}
-          onMouseLeave={(e) => {
-            if (abaAtiva !== 'lista') e.target.style.backgroundColor = '#1e293b';
-          }}
-        >
-          <List className="w-5 h-5" />
-          Lista de Pedidos
-        </button>
-        <button
-          onClick={() => setAbaAtiva('estatisticas')}
-          className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all ${
-            abaAtiva === 'estatisticas' 
-              ? 'shadow-lg' 
-              : 'opacity-70 hover:opacity-100'
-          }`}
-          style={{
-            backgroundColor: abaAtiva === 'estatisticas' ? '#14B8A6' : '#1e293b',
-            color: '#FFFFFF',
-            border: '1px solid #14B8A6'
-          }}
-          onMouseEnter={(e) => {
-            if (abaAtiva !== 'estatisticas') e.target.style.backgroundColor = '#3B82F6';
-          }}
-          onMouseLeave={(e) => {
-            if (abaAtiva !== 'estatisticas') e.target.style.backgroundColor = '#1e293b';
-          }}
-        >
-          <BarChart3 className="w-5 h-5" />
-          Estatísticas Mensais
-        </button>
-      </div>
 
       {/* Estatísticas */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -216,11 +178,6 @@ function ViewClientes() {
         </div>
       </div>
 
-      {/* Conteúdo baseado na aba ativa */}
-      {abaAtiva === 'estatisticas' ? (
-        <EstatisticasMensais clientes={clientesFiltrados} />
-      ) : (
-        <div>
       {/* Lista de Pedidos */}
       {clientesFiltrados.length === 0 ? (
         <div className="text-center py-12">
@@ -481,8 +438,6 @@ function ViewClientes() {
               </div>
           ))}
         </div>
-        )}
-      </div>
       )}
 
       {/* Modal de detalhes */}
