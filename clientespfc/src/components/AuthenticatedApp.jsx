@@ -6,6 +6,7 @@ import {
   addDoc,
   getDoc,
   setDoc,
+  updateDoc,
   doc,
   serverTimestamp,
 } from "firebase/firestore";
@@ -30,6 +31,14 @@ function AuthenticatedApp({ isAdmin, onShowAdmin }) {
         
         // Admin sempre aprovado
         if (currentUser.email === 'mauriciogear4@gmail.com') {
+          // Verificar se existe documento e aprovar automaticamente
+          const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+          if (userDoc.exists() && !userDoc.data().approved) {
+            // Aprovar automaticamente se estava bloqueado
+            await updateDoc(doc(db, "users", currentUser.uid), {
+              approved: true
+            });
+          }
           setApproved(true);
           setLoading(false);
           return;

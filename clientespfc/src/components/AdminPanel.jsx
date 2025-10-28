@@ -31,6 +31,12 @@ function AdminPanel({ onBack }) {
       
       snapshot.forEach((doc) => {
         const data = doc.data();
+        
+        // Filtrar admin - nunca deve aparecer na lista
+        if (data.email === 'mauriciogear4@gmail.com') {
+          return;
+        }
+        
         const createdAt = data.createdAt?.toDate ? data.createdAt.toDate() : data.createdAt;
         pending.push({
           id: doc.id,
@@ -63,6 +69,12 @@ function AdminPanel({ onBack }) {
       
       snapshot.forEach((doc) => {
         const data = doc.data();
+        
+        // Filtrar admin - nunca deve aparecer nas listas
+        if (data.email === 'mauriciogear4@gmail.com') {
+          return;
+        }
+        
         const createdAt = data.createdAt?.toDate ? data.createdAt.toDate() : data.createdAt;
         approved.push({
           id: doc.id,
