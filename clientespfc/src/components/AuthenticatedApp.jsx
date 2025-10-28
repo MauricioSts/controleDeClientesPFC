@@ -28,6 +28,13 @@ function AuthenticatedApp({ isAdmin, onShowAdmin }) {
       try {
         setLoading(true);
         
+        // Admin sempre aprovado
+        if (currentUser.email === 'mauriciogear4@gmail.com') {
+          setApproved(true);
+          setLoading(false);
+          return;
+        }
+        
         // Buscar dados do usuário
         const userDoc = await getDoc(doc(db, "users", currentUser.uid));
         
