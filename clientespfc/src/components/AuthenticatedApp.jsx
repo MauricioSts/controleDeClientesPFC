@@ -5,6 +5,7 @@ import {
   collection,
   addDoc,
   getDoc,
+  setDoc,
   doc,
   serverTimestamp,
 } from "firebase/firestore";
@@ -37,8 +38,8 @@ function AuthenticatedApp({ isAdmin, onShowAdmin }) {
           // Usuário novo, não aprovado
           setApproved(false);
           
-          // Criar documento do usuário como pendente
-          await addDoc(collection(db, "users"), {
+          // Criar documento do usuário como pendente (usando uid como doc ID)
+          await setDoc(doc(db, "users", currentUser.uid), {
             email: currentUser.email,
             uid: currentUser.uid,
             approved: false,
