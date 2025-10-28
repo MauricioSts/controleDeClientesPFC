@@ -75,17 +75,23 @@ function AdminPanel({ onBack }) {
           return;
         }
         
-        const createdAt = data.createdAt?.toDate ? data.createdAt.toDate() : data.createdAt;
+        const createdAt = data.createdAt?.toDate ? data.createdAt.toDate() : 
+                         data.approvedDate?.toDate ? data.approvedDate.toDate() : 
+                         data.createdAt || data.approvedDate || new Date();
         approved.push({
           id: doc.id,
           email: data.email || "Email não disponível",
-          approvedDate: createdAt || new Date(),
+          approvedDate: createdAt instanceof Date ? createdAt : new Date(createdAt),
           ...data
         });
       });
       
       // Ordenar por data (mais recente primeiro)
-      approved.sort((a, b) => new Date(b.approvedDate) - new Date(a.approvedDate));
+      approved.sort((a, b) => {
+        const dateA = a.approvedDate instanceof Date ? a.approvedDate : new Date(a.approvedDate || 0);
+        const dateB = b.approvedDate instanceof Date ? b.approvedDate : new Date(b.approvedDate || 0);
+        return dateB.getTime() - dateA.getTime();
+      });
       
       setProUsers(approved);
     } catch (error) {
@@ -276,7 +282,18 @@ function AdminPanel({ onBack }) {
                       <div className="flex items-center gap-2">
                         <Calendar className="w-4 h-4" style={{color: '#999'}} />
                         <span style={{color: '#999', fontSize: '14px'}}>
-                          {upgrade.pendingDate instanceof Date ? upgrade.pendingDate.toLocaleDateString('pt-BR') : upgrade.pendingDate ? new Date(upgrade.pendingDate).toLocaleDateString('pt-BR') : 'Recente'}
+                          {(() => {
+                            try {
+                              if (upgrade.pendingDate instanceof Date) {
+                                return upgrade.pendingDate.toLocaleDateString('pt-BR');
+                              } else if (upgrade.pendingDate) {
+                                return new Date(upgrade.pendingDate).toLocaleDateString('pt-BR');
+                              }
+                            } catch (e) {
+                              return 'Recente';
+                            }
+                            return 'Recente';
+                          })()}
                         </span>
                       </div>
                     </div>
@@ -338,7 +355,20 @@ function AdminPanel({ onBack }) {
                       <div className="flex items-center gap-2">
                         <Calendar className="w-4 h-4" style={{color: '#999'}} />
                         <span style={{color: '#999', fontSize: '14px'}}>
-                          Desde {user.approvedDate instanceof Date ? user.approvedDate.toLocaleDateString('pt-BR') : user.approvedDate ? new Date(user.approvedDate).toLocaleDateString('pt-BR') : 'Recente'}
+                          Desde {
+                            (() => {
+                              try {
+                                if (user.approvedDate instanceof Date) {
+                                  return user.approvedDate.toLocaleDateString('pt-BR');
+                                } else if (user.approvedDate) {
+                                  return new Date(user.approvedDate).toLocaleDateString('pt-BR');
+                                }
+                              } catch (e) {
+                                return 'Recente';
+                              }
+                              return 'Recente';
+                            })()
+                          }
                         </span>
                       </div>
                     </div>
