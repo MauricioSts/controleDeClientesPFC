@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { db } from "../firebase/config";
-import { collection, query, where, getDocs, doc, updateDoc, setDoc, orderBy, limit, serverTimestamp } from "firebase/firestore";
+import { collection, query, where, getDocs, doc, updateDoc, deleteDoc, setDoc, orderBy, limit, serverTimestamp } from "firebase/firestore";
 import { useAuth } from "../contexts/AuthContext";
 import { toast } from "react-hot-toast";
 import { Check, X, AlertCircle, User, Mail, Calendar, DollarSign, LogOut } from "lucide-react";
@@ -22,18 +22,19 @@ function AdminPanel({ onBack }) {
 
   const fetchPendingUpgrades = async () => {
     try {
-      // Buscar da nova coleção pending_upgrades
-      const upgradesRef = collection(db, "pending_upgrades");
-      const q = query(upgradesRef, where("processed", "==", false));
+      // Buscar usuários com approved: false
+      const usersRef = collection(db, "users");
+      const q = query(usersRef, where("approved", "==", false));
       
       const snapshot = await getDocs(q);
-      const upgrades = [];
+      const pending = [];
       
       snapshot.forEach((doc) => {
         const data = doc.data();
         const createdAt = data.createdAt?.toDate ? data.createdAt.toDate() : data.createdAt;
-        upgrades.push({
+        pending.push({
           id: doc.id,
+          uid: data.uid,
           email: data.email || "Email não disponível",
           pendingDate: createdAt || new Date(),
           ...data
@@ -41,12 +42,12 @@ function AdminPanel({ onBack }) {
       });
       
       // Ordenar por data (mais recente primeiro)
-      upgrades.sort((a, b) => new Date(b.pendingDate) - new Date(a.pendingDate));
+      pending.sort((a, b) => new Date(b.pendingDate) - new Date(a.pendingDate));
       
-      setPendingUpgrades(upgrades);
+      setPendingUpgrades(pending);
     } catch (error) {
-      console.error("Erro ao buscar upgrades pendentes:", error);
-      toast.error("Erro ao carregar upgrades pendentes");
+      console.error("Erro ao buscar usuários pendentes:", error);
+      toast.error("Erro ao carregar usuários pendentes");
     } finally {
       setLoading(false);
     }
@@ -55,91 +56,59 @@ function AdminPanel({ onBack }) {
   const fetchProUsers = async () => {
     try {
       const usersRef = collection(db, "users");
-      const q = query(usersRef, where("subscription.plan", "==", "pro"), orderBy("subscription.startDate", "desc"), limit(10));
+      const q = query(usersRef, where("approved", "==", true));
       
       const snapshot = await getDocs(q);
-      const pros = [];
+      const approved = [];
       
       snapshot.forEach((doc) => {
         const data = doc.data();
-        pros.push({
+        const createdAt = data.createdAt?.toDate ? data.createdAt.toDate() : data.createdAt;
+        approved.push({
           id: doc.id,
           email: data.email || "Email não disponível",
-          plan: data.subscription?.plan || "free",
-          startDate: data.subscription?.startDate?.toDate() || new Date(),
+          approvedDate: createdAt || new Date(),
           ...data
         });
       });
       
-      setProUsers(pros);
+      // Ordenar por data (mais recente primeiro)
+      approved.sort((a, b) => new Date(b.approvedDate) - new Date(a.approvedDate));
+      
+      setProUsers(approved);
     } catch (error) {
-      console.error("Erro ao buscar usuários PRO:", error);
+      console.error("Erro ao buscar usuários aprovados:", error);
     }
   };
 
-  const approveUpgrade = async (upgradeId, userEmail) => {
+  const approveUpgrade = async (userId, userEmail, userUid) => {
     try {
-      // Buscar usuário pelo email
-      const usersRef = collection(db, "users");
-      const q = query(usersRef, where("email", "==", userEmail));
-      const snapshot = await getDocs(q);
-      
-      let userId;
-      if (!snapshot.empty) {
-        // Usuário existe, pegar ID
-        userId = snapshot.docs[0].id;
-        // Atualizar para PRO
-        await updateDoc(doc(db, "users", userId), {
-          email: userEmail,
-          subscription: {
-            plan: "pro",
-            status: "active",
-            startDate: serverTimestamp(),
-          }
-        });
-      } else {
-        // Criar novo usuário com email
-        userId = `email_${userEmail}`;
-        await setDoc(doc(db, "users", userId), {
-          email: userEmail,
-          subscription: {
-            plan: "pro",
-            status: "active",
-            startDate: serverTimestamp(),
-          }
-        });
-      }
-      
-      // Marcar como processado na coleção pending_upgrades
-      await updateDoc(doc(db, "pending_upgrades", upgradeId), {
-        processed: true,
-        userId: userId,
-        processedAt: serverTimestamp()
+      // Atualizar usuário para aprovado
+      await updateDoc(doc(db, "users", userId), {
+        approved: true,
+        approvedDate: serverTimestamp(),
+        approvedBy: currentUser.email
       });
 
-      toast.success(`✅ Upgrade PRO aprovado para ${userEmail}`);
+      toast.success(`✅ Usuário aprovado: ${userEmail}`);
       fetchPendingUpgrades();
       fetchProUsers();
     } catch (error) {
-      console.error("Erro ao aprovar upgrade:", error);
-      toast.error("Erro ao aprovar upgrade");
+      console.error("Erro ao aprovar usuário:", error);
+      toast.error("Erro ao aprovar usuário");
     }
   };
 
-  const rejectUpgrade = async (upgradeId, userEmail) => {
+  const rejectUpgrade = async (userId, userEmail) => {
     try {
-      // Marcar como processado (rejeitado)
-      await updateDoc(doc(db, "pending_upgrades", upgradeId), {
-        processed: true,
-        status: "rejected",
-        processedAt: serverTimestamp()
-      });
+      // Deletar usuário rejeitado
+      await deleteDoc(doc(db, "users", userId));
 
-      toast.success(`❌ Upgrade PRO rejeitado para ${userEmail}`);
+      toast.success(`❌ Usuário rejeitado: ${userEmail}`);
       fetchPendingUpgrades();
     } catch (error) {
-      console.error("Erro ao rejeitar upgrade:", error);
-      toast.error("Erro ao rejeitar upgrade");
+      console.error("Erro ao rejeitar usuário:", error);
+      toast.error("Erro ao rejeitar usuário");
     }
   };
 
@@ -252,7 +221,7 @@ function AdminPanel({ onBack }) {
             <div className="p-4 rounded-xl" style={{ backgroundColor: '#3B82F6', border: '2px solid #2563EB' }}>
               <div className="flex items-center gap-2 mb-2">
                 <Check className="w-5 h-5" style={{color: '#FFFFFF'}} />
-                <span className="font-bold" style={{color: '#FFFFFF'}}>Ativos PRO</span>
+                <span className="font-bold" style={{color: '#FFFFFF'}}>Aprovados</span>
               </div>
               <div className="text-3xl font-bold" style={{color: '#FFFFFF'}}>
                 {proUsers.length}
@@ -260,11 +229,11 @@ function AdminPanel({ onBack }) {
             </div>
             <div className="p-4 rounded-xl" style={{ backgroundColor: '#14B8A6', border: '2px solid #0f766e' }}>
               <div className="flex items-center gap-2 mb-2">
-                <DollarSign className="w-5 h-5" style={{color: '#FFFFFF'}} />
-                <span className="font-bold" style={{color: '#FFFFFF'}}>Receita Mensal</span>
+                <User className="w-5 h-5" style={{color: '#FFFFFF'}} />
+                <span className="font-bold" style={{color: '#FFFFFF'}}>Total de Usuários</span>
               </div>
               <div className="text-3xl font-bold" style={{color: '#FFFFFF'}}>
-                R$ {(proUsers.length * 24.90).toFixed(2)}
+                {pendingUpgrades.length + proUsers.length}
               </div>
             </div>
           </div>
@@ -274,7 +243,7 @@ function AdminPanel({ onBack }) {
         {pendingUpgrades.length > 0 && (
           <div className="mb-8">
             <h2 className="text-2xl font-bold mb-4" style={{color: '#ef4444'}}>
-              ⚠️ Upgrades Pendentes
+              ⚠️ Usuários Pendentes de Aprovação
             </h2>
             <div className="space-y-4">
               {pendingUpgrades.map((upgrade) => (
@@ -301,7 +270,7 @@ function AdminPanel({ onBack }) {
                     </div>
                     <div className="flex gap-2">
                       <button
-                        onClick={() => approveUpgrade(upgrade.id, upgrade.email)}
+                        onClick={() => approveUpgrade(upgrade.id, upgrade.email, upgrade.uid)}
                         className="px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2"
                         style={{ backgroundColor: '#10B981', color: '#FFFFFF' }}
                         onMouseEnter={(e) => e.target.style.backgroundColor = '#059669'}
@@ -331,12 +300,12 @@ function AdminPanel({ onBack }) {
         {/* Usuários PRO */}
         <div>
           <h2 className="text-2xl font-bold mb-4" style={{color: '#3B82F6'}}>
-            ✅ Usuários PRO Ativos
+            ✅ Usuários Aprovados
           </h2>
           <div className="space-y-4">
             {proUsers.length === 0 ? (
               <div className="text-center p-8 rounded-xl" style={{ backgroundColor: '#1e293b', border: '1px solid #3B82F6' }}>
-                <p style={{color: '#999'}}>Nenhum usuário PRO ativo</p>
+                <p style={{color: '#999'}}>Nenhum usuário aprovado ainda</p>
               </div>
             ) : (
               proUsers.map((user) => (

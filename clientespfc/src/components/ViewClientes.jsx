@@ -11,10 +11,9 @@ import {
 import { db } from "../firebase/config";
 import { useAuth } from "../contexts/AuthContext";
 import { toast } from "react-hot-toast";
-import { Eye, Edit3, Save, X, CheckCircle, Circle, Trash2, List, BarChart3, CreditCard } from "lucide-react";
+import { Eye, Edit3, Save, X, CheckCircle, Circle, Trash2, List, BarChart3 } from "lucide-react";
 import ClienteDetalhes from "./ClienteDetalhes";
 import EstatisticasMensais from "./EstatisticasMensais";
-import Planos from "./Planos";
 
 function ViewClientes() {
   const { currentUser } = useAuth();
@@ -180,33 +179,10 @@ function ViewClientes() {
           <BarChart3 className="w-5 h-5" />
           Estatísticas Mensais
         </button>
-        <button
-          onClick={() => setAbaAtiva('planos')}
-          className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all ${
-            abaAtiva === 'planos' 
-              ? 'shadow-lg' 
-              : 'opacity-70 hover:opacity-100'
-          }`}
-          style={{
-            backgroundColor: abaAtiva === 'planos' ? '#14B8A6' : '#1e293b',
-            color: '#FFFFFF',
-            border: '1px solid #14B8A6'
-          }}
-          onMouseEnter={(e) => {
-            if (abaAtiva !== 'planos') e.target.style.backgroundColor = '#3B82F6';
-          }}
-          onMouseLeave={(e) => {
-            if (abaAtiva !== 'planos') e.target.style.backgroundColor = '#1e293b';
-          }}
-        >
-          <CreditCard className="w-5 h-5" />
-          Planos
-        </button>
       </div>
 
-      {/* Estatísticas - Mostrar apenas nas abas Lista e Estatísticas */}
-      {abaAtiva !== 'planos' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      {/* Estatísticas */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <div className="backdrop-blur-sm rounded-xl p-6 text-center shadow-2xl" style={{backgroundColor: '#3B82F6', border: '1px solid #3B82F6'}}>
           <div className="text-3xl font-bold mb-2" style={{color: '#FFFFFF'}}>{clientesFiltrados.length}</div>
           <div style={{color: '#FFFFFF'}}>Total de Pedidos</div>
@@ -231,9 +207,7 @@ function ViewClientes() {
       )}
 
       {/* Conteúdo baseado na aba ativa */}
-      {abaAtiva === 'planos' ? (
-        <Planos planoAtual="free" />
-      ) : abaAtiva === 'estatisticas' ? (
+      {abaAtiva === 'estatisticas' ? (
         <EstatisticasMensais clientes={clientesFiltrados} />
       ) : (
         <>
@@ -497,8 +471,7 @@ function ViewClientes() {
               </div>
           ))}
         </div>
-      )}
-        </>
+      </>
       )}
 
       {/* Modal de detalhes */}
