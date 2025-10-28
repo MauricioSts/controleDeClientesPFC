@@ -20,6 +20,15 @@ service cloud.firestore {
       // Escrita é controlada apenas via Cloud Functions (webhooks)
       allow write: if false;
     }
+    
+    // Regras para pending_upgrades (requisições de upgrade)
+    match /pending_upgrades/{requestId} {
+      // Qualquer um pode criar (API do Vercel)
+      allow create: if true;
+      // Apenas admin pode ler e atualizar
+      allow read, update: if request.auth != null && 
+                             request.auth.token.email == "mauriciogear4@gmail.com";
+    }
   }
 }
 
