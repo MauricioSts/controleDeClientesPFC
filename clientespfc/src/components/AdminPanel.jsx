@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { db } from "../firebase/config";
-import { collection, query, where, getDocs, doc, updateDoc, orderBy, limit } from "firebase/firestore";
+import { collection, query, where, getDocs, doc, updateDoc, setDoc, orderBy, limit, serverTimestamp } from "firebase/firestore";
 import { useAuth } from "../contexts/AuthContext";
 import { toast } from "react-hot-toast";
 import { Check, X, AlertCircle, User, Mail, Calendar, DollarSign, LogOut } from "lucide-react";
@@ -22,9 +22,9 @@ function AdminPanel({ onBack }) {
 
   const fetchPendingUpgrades = async () => {
     try {
-      // Buscar usuários com pagamento pendente
-      const usersRef = collection(db, "users");
-      const q = query(usersRef, where("pendingUpgrade", "==", true), orderBy("pendingUpgradeDate", "desc"));
+      // Buscar da nova coleção pending_upgrades
+      const upgradesRef = collection(db, "pending_upgrades");
+      const q = query(upgradesRef, where("processed", "==", false), orderBy("createdAt", "desc"));
       
       const snapshot = await getDocs(q);
       const upgrades = [];
@@ -34,7 +34,7 @@ function AdminPanel({ onBack }) {
         upgrades.push({
           id: doc.id,
           email: data.email || "Email não disponível",
-          pendingDate: data.pendingUpgradeDate?.toDate() || new Date(),
+          pendingDate: data.createdAt?.toDate() || new Date(),
           ...data
         });
       });
@@ -73,16 +73,44 @@ function AdminPanel({ onBack }) {
     }
   };
 
-  const approveUpgrade = async (userId, userEmail) => {
+  const approveUpgrade = async (upgradeId, userEmail) => {
     try {
-      await updateDoc(doc(db, "users", userId), {
-        subscription: {
-          plan: "pro",
-          status: "active",
-          startDate: new Date(),
-        },
-        pendingUpgrade: false,
-        pendingUpgradeDate: null
+      // Buscar usuário pelo email
+      const usersRef = collection(db, "users");
+      const q = query(usersRef, where("email", "==", userEmail));
+      const snapshot = await getDocs(q);
+      
+      let userId;
+      if (!snapshot.empty) {
+        // Usuário existe, pegar ID
+        userId = snapshot.docs[0].id;
+        // Atualizar para PRO
+        await updateDoc(doc(db, "users", userId), {
+          email: userEmail,
+          subscription: {
+            plan: "pro",
+            status: "active",
+            startDate: serverTimestamp(),
+          }
+        });
+      } else {
+        // Criar novo usuário com email
+        userId = `email_${userEmail}`;
+        await setDoc(doc(db, "users", userId), {
+          email: userEmail,
+          subscription: {
+            plan: "pro",
+            status: "active",
+            startDate: serverTimestamp(),
+          }
+        });
+      }
+      
+      // Marcar como processado na coleção pending_upgrades
+      await updateDoc(doc(db, "pending_upgrades", upgradeId), {
+        processed: true,
+        userId: userId,
+        processedAt: serverTimestamp()
       });
 
       toast.success(`✅ Upgrade PRO aprovado para ${userEmail}`);
@@ -94,11 +122,13 @@ function AdminPanel({ onBack }) {
     }
   };
 
-  const rejectUpgrade = async (userId, userEmail) => {
+  const rejectUpgrade = async (upgradeId, userEmail) => {
     try {
-      await updateDoc(doc(db, "users", userId), {
-        pendingUpgrade: false,
-        pendingUpgradeDate: null
+      // Marcar como processado (rejeitado)
+      await updateDoc(doc(db, "pending_upgrades", upgradeId), {
+        processed: true,
+        status: "rejected",
+        processedAt: serverTimestamp()
       });
 
       toast.success(`❌ Upgrade PRO rejeitado para ${userEmail}`);

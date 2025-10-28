@@ -7,7 +7,7 @@
   <script type="module">
     // Configuração do Firebase
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js';
-    import { getFirestore, collection, query, where, getDocs, setDoc, doc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js';
+    import { getFirestore, collection, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js';
 
     const firebaseConfig = {
       apiKey: "AIzaSyDj7WHl4YQJ7m8j4L6RB7I7zq8c6FKzH6FY",
@@ -24,43 +24,51 @@
     // Função para criar requisição de upgrade
     async function createUpgradeRequest(email) {
       try {
-        console.log('Criando requisição de upgrade para:', email);
+        console.log('📧 Email para upgrade:', email);
         
-        // Buscar se já existe um documento com esse email
-        const usersRef = collection(db, 'users');
-        const q = query(usersRef, where('email', '==', email));
-        const querySnapshot = await getDocs(q);
+        // Criar documento na coleção pending_upgrades
+        await addDoc(collection(db, 'pending_upgrades'), {
+          email: email,
+          status: 'pending',
+          plan: 'pro',
+          createdAt: serverTimestamp(),
+          processed: false
+        });
         
-        if (!querySnapshot.empty) {
-          // Usuário existe, atualizar
-          const userDoc = querySnapshot.docs[0];
-          await setDoc(doc(db, 'users', userDoc.id), {
-            email: email,
-            subscription: {
-              plan: 'free',
-              pendingUpgrade: true,
-              pendingUpgradeDate: serverTimestamp(),
-            }
-          }, { merge: true });
-          console.log('Requisição criada para usuário existente:', userDoc.id);
-        } else {
-          // Usuário não existe, precisamos criar (mas sem userId ainda)
-          console.warn('Usuário não encontrado no Firestore. O email será processado pelo admin.');
+        console.log('✅ Requisição criada com sucesso!');
+        
+        // Mostrar mensagem de sucesso
+        const container = document.querySelector('.container');
+        if (container) {
+          const p = document.createElement('p');
+          p.style.color = '#14B8A6';
+          p.style.fontWeight = 'bold';
+          p.textContent = '✅ Solicitação enviada! Em breve você terá acesso PRO.';
+          container.insertBefore(p, container.querySelector('button'));
         }
       } catch (error) {
-        console.error('Erro ao criar requisição:', error);
+        console.error('❌ Erro ao criar requisição:', error);
       }
     }
 
     // Executar quando a página carregar
     window.addEventListener('DOMContentLoaded', async () => {
       const userEmail = sessionStorage.getItem('pendingUpgradeEmail');
+      console.log('🔍 SessionStorage check:', userEmail);
+      
       if (userEmail) {
-        console.log('Email encontrado:', userEmail);
         await createUpgradeRequest(userEmail);
         sessionStorage.removeItem('pendingUpgradeEmail');
       } else {
-        console.warn('Nenhum email encontrado no sessionStorage');
+        console.warn('⚠️ Nenhum email encontrado no sessionStorage');
+        
+        // Tentar pegar da URL ou prompt
+        const urlParams = new URLSearchParams(window.location.search);
+        const emailFromUrl = urlParams.get('email');
+        
+        if (emailFromUrl) {
+          await createUpgradeRequest(emailFromUrl);
+        }
       }
     });
   </script>
