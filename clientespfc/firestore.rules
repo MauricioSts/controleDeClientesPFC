@@ -16,9 +16,14 @@ service cloud.firestore {
     
     // Regras para usuários
     match /users/{userId} {
+      // Qualquer usuário autenticado pode criar seu próprio documento
+      allow create: if request.auth != null && request.resource.data.uid == request.auth.uid;
+      // Usuário pode ler seu próprio documento
       allow read: if request.auth != null && request.auth.uid == userId;
-      // Escrita é controlada apenas via Cloud Functions (webhooks)
-      allow write: if false;
+      // Apenas admin pode atualizar (aprove/reject)
+      allow update: if request.auth != null && request.auth.token.email == "mauriciogear4@gmail.com";
+      // Apenas admin pode deletar
+      allow delete: if request.auth != null && request.auth.token.email == "mauriciogear4@gmail.com";
     }
     
     // Regras para pending_upgrades (requisições de upgrade)
