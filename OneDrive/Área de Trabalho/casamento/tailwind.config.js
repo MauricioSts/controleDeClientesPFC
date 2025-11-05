@@ -10,6 +10,7 @@ export default {
         'cursive': ['Great Vibes', 'cursive'],
         'serif': ['Playfair Display', 'serif'],
         'sans': ['Inter', 'sans-serif'],
+        'montserrat': ['Montserrat', 'sans-serif'],
       },
       colors: {
         'wedding-pink': '#F8E8E8',
@@ -20,6 +21,10 @@ export default {
         'wedding-gold-light': '#E8D9A0',
         'wedding-gold-dark': '#B8941F',
         'off-white': '#FAFAFA',
+        'soft-gray': '#E8E8E8',
+        'soft-pink': '#F5AEB4',
+        'beige-rose': '#D6B6A1',
+        'rose-soft': '#E6A6AD',
       },
     },
   },

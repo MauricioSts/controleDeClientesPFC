@@ -48,7 +48,7 @@ const InteractiveIcon = ({ iconType, label, onClick }) => {
           {IconComponent && <IconComponent />}
         </motion.div>
       </motion.div>
-      <p className="text-wedding-gray text-xs md:text-sm font-light text-center max-w-[100px] md:max-w-[120px] leading-tight">
+      <p className="text-wedding-gray text-sm md:text-base lg:text-lg font-serif font-light text-center max-w-[100px] md:max-w-[120px] leading-tight">
         {label}
       </p>
     </motion.button>
