@@ -1,0 +1,9 @@
+{
+  "name": "controle-de-clientes-pfc",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "cd clientespfc && npm install && npm run build",
+    "install": "cd clientespfc && npm install"
+  }
+}
