@@ -188,6 +188,23 @@ function OrdersManager() {
     return clientes.filter(cliente => pedido.clientesIds.includes(cliente.id));
   };
 
+  // Obter clientes que já estão em algum pedido
+  const clientesEmPedidos = pedidos.flatMap(pedido => pedido.clientesIds || []);
+
+  // Clientes disponíveis para seleção (não estão em nenhum pedido)
+  const clientesDisponiveis = clientes.filter(cliente => {
+    // Se estamos editando, incluir os clientes que já estão nesse pedido específico
+    if (editingId) {
+      const pedidoAtual = pedidos.find(p => p.id === editingId);
+      const clientesNoPedidoAtual = pedidoAtual?.clientesIds || [];
+      // Cliente disponível se: não está em nenhum pedido OU já está no pedido atual sendo editado
+      return !clientesEmPedidos.includes(cliente.id) || clientesNoPedidoAtual.includes(cliente.id);
+    }
+    // Se estamos adicionando novo, mostrar apenas clientes que não estão em nenhum pedido
+    // E também excluir clientes que já foram marcados como concluídos ou com pedido feito
+    return !clientesEmPedidos.includes(cliente.id) && !cliente.concluido && !cliente.pedidoFeito;
+  });
+
   const cancelEdit = () => {
     setEditingId(null);
     setFormData({ numeroRastreio: "", clientesSelecionados: [], observacoes: "" });
@@ -200,8 +217,12 @@ function OrdersManager() {
         {!isAdding && !editingId && (
           <button
             onClick={() => setIsAdding(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
-            disabled={clientes.length === 0}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-white transition-colors ${
+              clientesDisponiveis.length === 0 
+                ? 'bg-gray-600 cursor-not-allowed' 
+                : 'bg-blue-600 hover:bg-blue-700'
+            }`}
+            disabled={clientesDisponiveis.length === 0}
           >
             <PackagePlus className="w-5 h-5" />
             Criar Pedido
@@ -213,6 +234,18 @@ function OrdersManager() {
         <div className="p-6 rounded-xl text-center" style={{backgroundColor: '#1e293b', border: '1px solid #ef4444'}}>
           <p style={{color: '#ef4444'}}>
             ⚠️ Você precisa cadastrar clientes primeiro! Acesse a aba "👥 Clientes".
+          </p>
+        </div>
+      )}
+
+      {clientes.length > 0 && clientesDisponiveis.length === 0 && !isAdding && !editingId && (
+        <div className="p-6 rounded-xl text-center" style={{backgroundColor: '#1e293b', border: '1px solid #f59e0b'}}>
+          <p style={{color: '#f59e0b'}}>
+            ⚠️ Todos os clientes já estão associados a pedidos ou marcados como concluídos/pedido feito.
+            <br />
+            <span className="text-sm" style={{color: '#999'}}>
+              Adicione novos clientes ou remova clientes de pedidos existentes para criar novos pedidos.
+            </span>
           </p>
         </div>
       )}
@@ -242,8 +275,15 @@ function OrdersManager() {
               <label className="block text-sm font-medium mb-2" style={{color: '#FFFFFF'}}>
                 Selecionar Clientes * (múltiplos)
               </label>
+              {clientesDisponiveis.length === 0 ? (
+                <div className="p-4 rounded-lg text-center" style={{backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '1px solid #ef4444'}}>
+                  <p style={{color: '#ef4444'}}>
+                    ⚠️ Não há clientes disponíveis. Todos os clientes já estão associados a pedidos ou marcados como concluídos.
+                  </p>
+                </div>
+              ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-64 overflow-y-auto p-4 rounded-lg" style={{backgroundColor: 'rgba(55, 65, 81, 0.3)'}}>
-                {clientes.map((cliente) => (
+                {clientesDisponiveis.map((cliente) => (
                   <label key={cliente.id} className="flex items-start gap-3 p-3 rounded-lg cursor-pointer hover:bg-gray-700 transition-colors" style={{backgroundColor: formData.clientesSelecionados.includes(cliente.id) ? 'rgba(59, 130, 246, 0.2)' : ''}}>
                     <input
                       type="checkbox"
@@ -270,6 +310,7 @@ function OrdersManager() {
                   </label>
                 ))}
               </div>
+              )}
               {formData.clientesSelecionados.length > 0 && (
                 <div className="mt-2 p-3 rounded-lg" style={{backgroundColor: 'rgba(20, 184, 166, 0.1)'}}>
                   <p className="text-sm mb-1" style={{color: '#14B8A6'}}>
