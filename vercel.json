@@ -1,6 +1,5 @@
 {
-  "buildCommand": "cd clientespfc && npm install && npm run build",
-  "outputDirectory": "clientespfc/dist",
-  "installCommand": "npm install",
-  "framework": "vite"
+  "installCommand": "cd clientespfc && npm install",
+  "buildCommand": "cd clientespfc && npm run build",
+  "outputDirectory": "clientespfc/dist"
 }
